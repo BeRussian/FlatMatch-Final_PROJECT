@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlatMatch – פיץ' וארכיטקטורת מודל מונחה עצמים (חלק ב')</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+    body {
+      font-family: 'Assistant', sans-serif;
+    }
+    .slide {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .slide.active {
+      display: block;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation & Progress Bar -->
+  <header class="w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🏢</span>
+        <div>
+          <h1 class="text-lg font-bold bg-gradient-to-l from-indigo-400 to-rose-400 bg-clip-text text-transparent">FlatMatch</h1>
+          <p class="text-xs text-slate-400">פרויקט גמר | תכנות מתקדם ב-Python | חלק ב' - מודל OOP</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="slideCounter" class="text-sm font-semibold bg-slate-800 text-indigo-300 px-3 py-1 rounded-full border border-slate-700">שקף 1 / 14</span>
+        <div class="flex gap-2">
+          <button onclick="prevSlide()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition" title="שקף קודם">
+            <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <button onclick="nextSlide()" class="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition" title="שקף הבא">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Progress Indicator Bar -->
+    <div class="w-full bg-slate-800 h-1 mt-2 rounded-full overflow-hidden">
+      <div id="progressBar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 7.14%;"></div>
+    </div>
+  </header>
+
+  <!-- Main Slide Container -->
+  <main class="flex-grow max-w-6xl w-full mx-auto p-6 md:p-10 flex items-center">
+
+    <!-- SLIDE 1: Cover / Elevator Pitch -->
+    <div class="slide active w-full" id="slide-1">
+      <div class="text-center space-y-6 max-w-3xl mx-auto py-10">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 text-sm font-semibold">
+          🚀 Pitch Deck & OOP Architecture Blueprint
+        </div>
+        <h2 class="text-5xl md:text-6xl font-black tracking-tight leading-tight">
+          חיבור שותפים ודירות <br>
+          <span class="bg-gradient-to-l from-indigo-400 via-purple-300 to-rose-400 bg-clip-text text-transparent">חכם, מבוסס נתונים ואלגוריתמי</span>
+        </h2>
+        <p class="text-xl text-slate-300 font-light leading-relaxed">
+          <strong>FlatMatch</strong> פותרת את "רולטת השותפים" והכאוס ברשתות החברתיות באמצעות מודל סימטרי מלא, סינון תנאי סף קשיחים, מודל דירוג משוקלל וארכיטקטורת מונחית עצמים לפי סילבוס הקורס.
+        </p>
+        <div class="pt-6 flex flex-wrap justify-center gap-4 text-sm text-slate-400">
+          <span class="flex items-center gap-1.5 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700/60">🎓 הקריה האקדמית אונו</span>
+          <span class="flex items-center gap-1.5 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700/60">⚙️ Python טהור ללא ספריות זרות</span>
+          <span class="flex items-center gap-1.5 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700/60">⚡ מודל סימטרי מלא (Tinder Model)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: The Problem & Business Need -->
+    <div class="slide w-full" id="slide-2">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-indigo-400 font-semibold text-sm">הצורך העסקי</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold mt-1">למה חיפוש שותפים הוא כיום סיוט?</h2>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6 pt-4">
+          <div class="bg-slate-800/60 border border-slate-700/80 p-6 rounded-2xl space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-2xl">🌪️</div>
+            <h3 class="text-xl font-bold text-rose-300">כאוס קבוצות הפייסבוק</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">
+              מאות פוסטים מבולגנים, הודעות פרטיות שנבלעות, חוסר שקיפות על המחיר האמיתי, ותהליך סינון ידני מתיש שלוקח עשרות שעות.
+            </p>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700/80 p-6 rounded-2xl space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl">💔</div>
+            <h3 class="text-xl font-bold text-amber-300">פער אורח החיים הנסתר</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">
+              מעל <strong>40% מפירוקי החוזים</strong> נובעים מחיכוך יומיומי: כלים בכיור, שעות שינה הפוכות, עישון, חיות מחמד או שמירת כשרות ושבת.
+            </p>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700/80 p-6 rounded-2xl space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-2xl">💸</div>
+            <h3 class="text-xl font-bold text-indigo-300">מחיר כספי ונפשי כבד</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">
+              עזיבה מוקדמת גוררת אובדן פיקדונות, הוצאות הובלה כפולות, סכסוכים משפטיים מול בעלי דירות ועוגמת נפש גדולה.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: The System Idea & Symmetric Model -->
+    <div class="slide w-full" id="slide-3">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-indigo-400 font-semibold text-sm">הפתרון והרעיון הכללי</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold mt-1">מודל סימטרי מלא: Tinder לשותפים</h2>
+        </div>
+        <div class="grid md:grid-cols-2 gap-8 items-center pt-2">
+          <div class="space-y-4">
+            <div class="bg-slate-800/80 border border-indigo-500/30 p-5 rounded-2xl">
+              <h4 class="font-bold text-indigo-300 flex items-center gap-2">
+                <span>🔍</span> מחפש דירה (Apartment Seeker)
+              </h4>
+              <p class="text-sm text-slate-300 mt-2">
+                מזין תקציב מקסימלי, ערי יעד, ועונה על שאלון אורח חיים. הפיד שלו מציג חדרים ודירות מדורגים לפי ציון ההתאמה הגבוה ביותר.
+              </p>
+            </div>
+            <div class="bg-slate-800/80 border border-purple-500/30 p-5 rounded-2xl">
+              <h4 class="font-bold text-purple-300 flex items-center gap-2">
+                <span>🏠</span> מחזיק דירה ומחפש שותף (Roommate Seeker)
+              </h4>
+              <p class="text-sm text-slate-300 mt-2">
+                מגדיר את פרטי הנכס (שכ"ד, מתקנים) וציפיות מהשותף. הפיד מציג מועמדים רלוונטיים באזור שלו, מסודרים מראש לפי התאמה מרבית.
+              </p>
+            </div>
+            <div class="bg-emerald-950/40 border border-emerald-500/40 p-4 rounded-xl text-emerald-200 text-sm">
+              ✨ <strong>Double-Opt-In:</strong> פרטי הקשר נחשפים אך ורק כאשר שני הצדדים ביצעו Swipe Right (Like הדדי)!
+            </div>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-4">
+            <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-400">זרימת הנתונים במערכת</h4>
+            <div class="space-y-3 font-mono text-xs">
+              <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 flex justify-between items-center">
+                <span>1. טעינת נתונים עצלה</span>
+                <span class="text-indigo-400">Stream JSONL</span>
+              </div>
+              <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 flex justify-between items-center">
+                <span>2. סינון Deal-Breakers קשיחים</span>
+                <span class="text-rose-400">Early Pruning O(1)</span>
+              </div>
+              <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 flex justify-between items-center">
+                <span>3. חישוב ציון התאמה משוקלל</span>
+                <span class="text-amber-400">Weighted Distance</span>
+              </div>
+              <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 flex justify-between items-center">
+                <span>4. תור עדיפויות עצל</span>
+                <span class="text-emerald-400">HeapQ & Generators</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: The 22 Criteria Taxonomy -->
+    <div class="slide w-full" id="slide-4">
+      <div class="space-y-4">
+        <div class="border-b border-slate-800 pb-3 flex justify-between items-end">
+          <div>
+            <span class="text-indigo-400 font-semibold text-sm">שאלון ההעדפות</span>
+            <h2 class="text-3xl font-extrabold mt-1">מטריצת 22 הקריטריונים לאורח חיים ודיור</h2>
+          </div>
+          <span class="text-xs bg-indigo-900/60 text-indigo-300 px-3 py-1 rounded-full border border-indigo-700">6 קטגוריות ליבה</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs">
+          <!-- Category 1 -->
+          <div class="bg-slate-800/80 border border-rose-500/30 p-3.5 rounded-xl space-y-2">
+            <h4 class="font-bold text-rose-300 text-sm flex items-center gap-1.5">
+              <span>🚫</span> תנאי סף קשיחים (Deal-Breakers)
+            </h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <strong>תקציב ושכ"ד:</strong> חריגה גוררת פסילה מיידית</li>
+              <li>• <strong>עיר ואזור:</strong> התאמה לערי היעד של המחפש</li>
+              <li>• <strong>מגדר:</strong> גברים/נשים/מעורב/ללא העדפה</li>
+              <li>• <strong>עישון:</strong> אסור כלל / מרפסת / מותר</li>
+              <li>• <strong>חיות מחמד:</strong> אין כניסה (אלרגיה) / חתול / כלב</li>
+              <li>• <strong>כשרות במטבח:</strong> מהדרין / בסיסית / חילוני</li>
+              <li>• <strong>שמירת שבת:</strong> שומר שבת / מסורתי / חילוני</li>
+            </ul>
+          </div>
+
+          <!-- Category 2 -->
+          <div class="bg-slate-800/80 border border-amber-500/30 p-3.5 rounded-xl space-y-2">
+            <h4 class="font-bold text-amber-300 text-sm flex items-center gap-1.5">
+              <span>🧽</span> ניקיון ואחזקה (25%)
+            </h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <strong>רמת ניקיון:</strong> סולם 1 (חופשי) עד 5 (סטרילי)</li>
+              <li>• <strong>שטיפת כלים:</strong> מיידית / עד 24 שעות / רגוע</li>
+              <li>• <strong>אופן ניקיון:</strong> מנקה חיצונית / תורנות / ספונטני</li>
+            </ul>
+          </div>
+
+          <!-- Category 3 -->
+          <div class="bg-slate-800/80 border border-emerald-500/30 p-3.5 rounded-xl space-y-2">
+            <h4 class="font-bold text-emerald-300 text-sm flex items-center gap-1.5">
+              <span>⏰</span> שגרה ונוכחות (20%)
+            </h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <strong>שעון ביולוגי:</strong> ציפור בוקר מול ינשוף לילה</li>
+              <li>• <strong>עבודה מהבית (WFH):</strong> בחוץ כל היום / היברידי / מלא</li>
+              <li>• <strong>שעות שקט ללימודים:</strong> עדיפות עליונה / גמיש</li>
+            </ul>
+          </div>
+
+          <!-- Category 4 -->
+          <div class="bg-slate-800/80 border border-sky-500/30 p-3.5 rounded-xl space-y-2">
+            <h4 class="font-bold text-sky-300 text-sm flex items-center gap-1.5">
+              <span>🍷</span> הווי חברתי ורעש (20%)
+            </h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <strong>אירוח ארוחות:</strong> שקט אינטימי / שישי / בית פתוח</li>
+              <li>• <strong>מסיבות בבית:</strong> אסור / מפגשים קטנים / מסיבות</li>
+              <li>• <strong>בני/בנות זוג:</strong> 1-2 לילות / חצי שבוע / חיים יחד</li>
+              <li>• <strong>סובלנות לרעש:</strong> שקט מוחלט / שגרתי / ער</li>
+            </ul>
+          </div>
+
+          <!-- Category 5 -->
+          <div class="bg-slate-800/80 border border-purple-500/30 p-3.5 rounded-xl space-y-2">
+            <h4 class="font-bold text-purple-300 text-sm flex items-center gap-1.5">
+              <span>🍽️</span> תזונה והוצאות (15%)
+            </h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <strong>אורח חיים:</strong> צמחוני-טבעוני בלבד / אוכלי כל</li>
+              <li>• <strong>שיתוף מצרכים:</strong> נפרד / בסיסי משותף / מלא</li>
+              <li>• <strong>שימוש במזגן:</strong> 24/7 בקיץ / מתון / חסכוני</li>
+            </ul>
+          </div>
+
+          <!-- Category 6 -->
+          <div class="bg-slate-800/80 border border-indigo-500/30 p-3.5 rounded-xl space-y-2">
+            <h4 class="font-bold text-indigo-300 text-sm flex items-center gap-1.5">
+              <span>🛋️</span> ריהוט וגמישות (20%)
+            </h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <strong>ריהוט החדר:</strong> מרוהט קומפלט / חלקי / ריק</li>
+              <li>• <strong>תאריך כניסה:</strong> מיידי / בתוך 30 יום / גמיש</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Scoring Model & Dynamic Threshold -->
+    <div class="slide w-full" id="slide-5">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-indigo-400 font-semibold text-sm">האלגוריתם והמתמטיקה</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold mt-1">איך עובד מודל הניקוד ורף המינימום?</h2>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 items-center">
+          <div class="space-y-4">
+            <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3 font-mono text-sm">
+              <div class="text-indigo-400 font-bold">נוסחת חישוב ציון ההתאמה (Match Score):</div>
+              <div class="text-xs text-slate-300 bg-slate-900 p-3 rounded-lg border border-slate-800">
+                Score = 100 * (1.0 - &Sigma; [ w_i * (|P_seeker,i - P_host,i| / MaxDist_i) ])
+              </div>
+              <p class="text-xs text-slate-400 font-sans">
+                כל קריטריון רך מקבל משקל יחסי. מרחק אפס מניב התאמה מושלמת (100%).
+              </p>
+            </div>
+            <div class="bg-slate-800/80 p-5 rounded-2xl border border-indigo-500/30 space-y-2">
+              <h4 class="font-bold text-indigo-300 text-sm">רף מינימום דינמי לבחירת המשתמש:</h4>
+              <p class="text-sm text-slate-300">
+                משתמש יכול לקבוע לעצמו <code>min_match_threshold = 75%</code>. המערכת תסנן מראש מועמדים שקיבלו ציון נמוך מ-75%.
+              </p>
+              <p class="text-xs text-slate-400">
+                אם המשתמש בחר לא להגדיר רף (<code>None</code>), המערכת תציג את כלל המועמדים התקינים בסדר יורד.
+              </p>
+            </div>
+          </div>
+          <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+            <h4 class="text-sm font-semibold text-slate-300">היררכיית שליפת מועמד מהזיכרון</h4>
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center gap-3 p-3 bg-rose-950/30 border border-rose-800/50 rounded-lg">
+                <span class="font-bold text-rose-400">שלב 1:</span>
+                <span>בדיקת Deal-Breakers בינארית (אם נכשל - נזרק מיד)</span>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-amber-950/30 border border-amber-800/50 rounded-lg">
+                <span class="font-bold text-amber-400">שלב 2:</span>
+                <span>חישוב ציון משוקלל ובדיקה מול <code>min_match_threshold</code></span>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-indigo-950/30 border border-indigo-800/50 rounded-lg">
+                <span class="font-bold text-indigo-400">שלב 3:</span>
+                <span>דחיפה ל-<code>heapq</code> (תור עדיפויות ממוין)</span>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-emerald-950/30 border border-emerald-800/50 rounded-lg">
+                <span class="font-bold text-emerald-400">שלב 4:</span>
+                <span>שליפת המועמד הטוב הבא באמצעות <code>yield</code> בלבד!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: User Feed Presentation & Journey -->
+    <div class="slide w-full" id="slide-6">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-indigo-400 font-semibold text-sm">הצגת המשתמשים ומסע ה-Swipe</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold mt-1">מה רואה המשתמש כשהוא מתחבר?</h2>
+        </div>
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <!-- Card Mockup Seeker -->
+          <div class="bg-slate-950 border border-indigo-500/40 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-4 left-4 bg-emerald-500 text-slate-950 text-xs font-black px-3 py-1 rounded-full">
+              92% התאמה
+            </div>
+            <div class="text-xs text-indigo-400 font-bold uppercase tracking-wider mb-2">כרטיס דירה בפיד של עמית</div>
+            <h3 class="text-2xl font-bold text-white">חדר בפלורנטין, תל אביב</h3>
+            <p class="text-sm text-slate-400 mt-1">מארחת: נועה (27), מעצבת מוצר | שכר דירה: 3,600 ₪</p>
+            
+            <div class="grid grid-cols-2 gap-2 mt-4 text-xs">
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">🧽 ניקיון: 4/5 (תורנות קבועה)</div>
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">⏰ שגרה: Early Bird</div>
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">🐾 חיות: כלב קטן ומחונך</div>
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">🍽️ מטבח: צמחוני גמיש</div>
+            </div>
+
+            <div class="flex justify-center gap-6 mt-6">
+              <button class="w-12 h-12 rounded-full bg-slate-900 border border-rose-500 text-rose-500 flex items-center justify-center text-xl hover:bg-rose-500 hover:text-white transition">✕</button>
+              <button class="w-12 h-12 rounded-full bg-slate-900 border border-emerald-500 text-emerald-500 flex items-center justify-center text-xl hover:bg-emerald-500 hover:text-white transition">♥</button>
+            </div>
+          </div>
+
+          <!-- Matching Celebration -->
+          <div class="space-y-4">
+            <div class="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 border border-indigo-400/40 p-6 rounded-2xl space-y-3">
+              <div class="text-3xl">🎉 IT'S A MATCH!</div>
+              <h4 class="text-xl font-bold text-white">חיבור הדדי אושר במערכת!</h4>
+              <p class="text-sm text-slate-200">
+                גם עמית וגם נועה אישרו זה את זו. נעילת הפרטים הוסרה מיידית:
+              </p>
+              <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-xs font-mono text-emerald-300">
+                📞 טלפון של נועה: 052-8765432 <br>
+                💬 הודעת וואטסאפ מוכנה לתיאום ביקור בדירה
+              </div>
+            </div>
+            <p class="text-xs text-slate-400">
+              כל האינטראקציות מתועדות בצורה בטוחה דרך ה-Context Manager, ומונעות כפילויות של מועמדים שכבר נבדקו.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Software Architecture & Syllabus Mapping -->
+    <div class="slide w-full" id="slide-7">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-indigo-400 font-semibold text-sm">הארכיטקטורה ההנדסית</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold mt-1">חיבור מושלם לסילבוס הקורס (שיעורים 1-4)</h2>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 text-xs">
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-indigo-400 font-bold">שיעור 1: מודל OOP מתקדם</span>
+            <p class="text-slate-300">
+              מחלקה אבסטרקטית <code>User(ABC)</code>, יורשות <code>ApartmentSeeker</code> ו-<code>RoommateSeeker</code> עם פולימורפיזם ו-Overriding. קומפוזיציה מלאה מול <code>Preferences</code> ו-<code>Apartment</code>. ולידציה עם Property וזריקת <code>ValueError</code>.
+            </p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-purple-400 font-bold">שיעור 2: מבנה פרויקט ו-Git</span>
+            <p class="text-slate-300">
+              חלוקה מודולרית תקנית: חבילת <code>flatmatch/</code>, קבצי <code>.gitignore</code>, <code>pyproject.toml</code> וניהול גרסאות עם לפחות 7 commits משמעותיים.
+            </p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-amber-400 font-bold">שיעור 3: מבני נתונים מתקדמים</span>
+            <p class="text-slate-300">
+              שימוש ב-<code>set</code> למתקנים, <code>dict</code> לאיתור לפי מזהה וקיבוץ לפי ערים, <code>deque</code> לתור בקשות FIFO, ו-<code>heapq</code> עם <code>__lt__</code> למיון דירוג מועמדים בעדיפות עליונה.
+            </p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-emerald-400 font-bold">שיעור 4: Iterators, Generators & Context Managers</span>
+            <p class="text-slate-300">
+              מחלקת <code>CandidateFeed</code> (Iterable) ו-<code>FeedIterator</code> עצמאיים, Generator עם <code>yield</code> בצינור עיבוד עצל, וקריאת 75 רשומות מ-JSONL שורה-אחר-שורה בתוך בלוק <code>with</code> מוגן.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDES FOR PART B: DETAILED OOP BLUEPRINT -->
+    <!-- ========================================== -->
+
+    <!-- SLIDE 8: Part B Intro & Class Hierarchy Diagram -->
+    <div class="slide w-full" id="slide-8">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-4">
+          <span class="text-indigo-400 font-semibold text-sm">חלק ב' בהוראות הפרויקט (project_name/models.py)</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold mt-1">מפת הישויות והקשרים ב-OOP</h2>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 items-center">
+          <div class="space-y-4">
+            <p class="text-sm text-slate-300 leading-relaxed">
+              בהתאם לסילבוס ולהנחיות המרצה, כל הקוד ימומש ב-<code>flatmatch/models.py</code>. נבנה 5 מחלקות עסקיות בעלות אחריות אמיתית:
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                <span class="font-bold text-indigo-400">User (ABC)</span>
+                <span class="text-slate-400">מחלקת בסיס אבסטרקטית (חוזה)</span>
+              </div>
+              <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                <span class="font-bold text-purple-400">ApartmentSeeker</span>
+                <span class="text-slate-400">הורשה מ-User + ניהול תקציב</span>
+              </div>
+              <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                <span class="font-bold text-amber-400">RoommateSeeker</span>
+                <span class="text-slate-400">הורשה מ-User + הרכבת Apartment</span>
+              </div>
+              <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                <span class="font-bold text-emerald-400">Apartment</span>
+                <span class="text-slate-400">נכס פיזי + ניהול אוסף Amenities (set)</span>
+              </div>
+              <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                <span class="font-bold text-rose-400">Preferences</span>
+                <span class="text-slate-400">הרכבה בתוך User (22 קריטריונים)</span>
+              </div>
+            </div>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-3 font-mono text-xs">
+            <div class="text-slate-400 uppercase text-[10px] tracking-wider">דיאגרמת יחסי הגומלין (OOP Relations)</div>
+            <div class="text-slate-300 space-y-1.5 leading-relaxed">
+              <div>User (ABC) [Abstract Base]</div>
+              <div class="pl-4 text-purple-300">├── ▲ Inheritance: <strong>ApartmentSeeker</strong> (is-a User)</div>
+              <div class="pl-4 text-amber-300">├── ▲ Inheritance: <strong>RoommateSeeker</strong> (is-a User)</div>
+              <div class="pl-8 text-emerald-300">└── ◆ Composition: <strong>Apartment</strong> (has-a)</div>
+              <div class="pl-12 text-teal-300">└── o Collection: <strong>set[amenities]</strong></div>
+              <div class="pl-4 text-rose-300">└── ◆ Composition: <strong>Preferences</strong> (User has-a Preferences)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9: Deep Dive - User (ABC) -->
+    <div class="slide w-full" id="slide-9">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-3 flex justify-between items-end">
+          <div>
+            <span class="text-indigo-400 font-semibold text-sm">חלק ב' - סעיף 1 וסעיף 3.1</span>
+            <h2 class="text-3xl font-extrabold mt-1">מחלקת הבסיס האבסטרקטית: User(ABC)</h2>
+          </div>
+          <span class="text-xs bg-slate-800 text-indigo-300 px-3 py-1 rounded-full border border-slate-700">Abstract Base Class</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-xs">
+          <!-- Attributes & Init -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+            <h4 class="font-bold text-indigo-300 text-sm">תכונות (Attributes) ובנאי ראשי:</h4>
+            <ul class="space-y-1.5 text-slate-300">
+              <li>• <code>user_id: str</code> – מזהה ייחודי למשתמש</li>
+              <li>• <code>name: str</code> – שם מלא של המשתמש</li>
+              <li>• <code>_age: int</code> – שדה מוגן (Encapsulated) עם Property</li>
+              <li>• <code>phone: str</code> – טלפון לחשיפה בעת Match</li>
+              <li>• <code>preferences: Preferences</code> – אובייקט הרכבה</li>
+            </ul>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-slate-400">
+              <strong>הגנה מפני יצירה ישירה:</strong> ירושה מ-<code>ABC</code> מונעת יצירת אובייקט ישיר (<code>TypeError</code>) ומבטיחה יישום החוזה על ידי המחלקות היורשות.
+            </div>
+          </div>
+
+          <!-- Abstract Methods & Validation -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+            <h4 class="font-bold text-rose-300 text-sm">מתודות אבסטרקטיות, ולידציה ו-Dunder:</h4>
+            <div class="space-y-2">
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-rose-400 font-bold">@abstractmethod get_role_summary() -> str</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">חוזה מחייב: החזרת מחרוזת תיאור תפקיד ספציפי למחלקות היורשות.</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-rose-400 font-bold">@abstractmethod evaluate_dealbreakers(other) -> bool</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">חוזה מחייב: בדיקה פולימורפית לפסילה מול משתמש אחר.</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-amber-400 font-bold">Encapsulation (@age.setter):</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">בדיקה ש-<code>age >= 18</code>. חריגה תזרוק <code>ValueError("גיל המשתמש חייב להיות לפחות 18")</code>.</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-indigo-400 font-bold">__str__ ו-__repr__:</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">הצגה ידידותית מול הצגת פיתוח מלאה לדיבאגינג.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: Deep Dive - ApartmentSeeker & RoommateSeeker -->
+    <div class="slide w-full" id="slide-10">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-3 flex justify-between items-end">
+          <div>
+            <span class="text-indigo-400 font-semibold text-sm">חלק ב' - סעיף 3: הורשה, דריסה (Overriding) ופולימורפיזם</span>
+            <h2 class="text-3xl font-extrabold mt-1">המחלקות היורשות: Seeker מול Host</h2>
+          </div>
+          <span class="text-xs bg-slate-800 text-purple-300 px-3 py-1 rounded-full border border-slate-700">Polymorphic Classes</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-xs">
+          <!-- ApartmentSeeker -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-purple-500/30 space-y-3">
+            <h4 class="font-bold text-purple-300 text-sm flex items-center gap-1.5">
+              <span>🔍</span> ApartmentSeeker(User)
+            </h4>
+            <p class="text-slate-300">יורשת מ-<code>User</code> ומייצגת אדם שמחפש חדר.</p>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <code>_max_budget: float</code> – תקציב מקסימלי מוגן ב-Property</li>
+              <li>• <code>preferred_cities: list[str]</code> – ערי יעד מבוקשות</li>
+            </ul>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span class="font-bold text-indigo-300">Overriding (דריסת מתודות):</span>
+              <p class="text-slate-400">• דורסת את <code>get_role_summary()</code> עם תקציב ועיר.</p>
+              <p class="text-slate-400">• דורסת את <code>evaluate_dealbreakers(other)</code>: בודקת אם שכ"ד הדירה של המארח חורג מתקציבו או עיר שלא ברשימה.</p>
+            </div>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span class="font-bold text-amber-300">בנאי אלטרנטיבי ו-HeapQ:</span>
+              <p class="text-slate-400">• <code>@classmethod from_dict(cls, data)</code></p>
+              <p class="text-slate-400">• <code>__lt__(self, other)</code> – השוואת תקציבים ישירה ב-HeapQ.</p>
+            </div>
+          </div>
+
+          <!-- RoommateSeeker -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-amber-500/30 space-y-3">
+            <h4 class="font-bold text-amber-300 text-sm flex items-center gap-1.5">
+              <span>🏠</span> RoommateSeeker(User)
+            </h4>
+            <p class="text-slate-300">יורשת מ-<code>User</code> ומייצגת שותף שיש לו חדר פנוי בדירה.</p>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <code>apartment: Apartment</code> – הרכבה של הנכס המנוהל!</li>
+            </ul>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span class="font-bold text-indigo-300">Overriding (דריסת מתודות):</span>
+              <p class="text-slate-400">• דורסת את <code>get_role_summary()</code> כולל פרטי הדירה והחדר.</p>
+              <p class="text-slate-400">• דורסת את <code>evaluate_dealbreakers(other)</code>: בודקת אם המועמד עומד בשכ"ד הדירה והאם אין סתירת עישון/חיות.</p>
+            </div>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span class="font-bold text-amber-300">בנאי אלטרנטיבי חכם:</span>
+              <p class="text-slate-400">• <code>@classmethod from_dict(cls, data)</code> – קורא רקורסיבית ל-<code>Apartment.from_dict</code> ול-<code>Preferences.from_dict</code>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11: Deep Dive - Apartment & Collection Management -->
+    <div class="slide w-full" id="slide-11">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-3 flex justify-between items-end">
+          <div>
+            <span class="text-indigo-400 font-semibold text-sm">חלק ב' - סעיף 2 וסעיף 5</span>
+            <h2 class="text-3xl font-extrabold mt-1">מחלקת הנכס: Apartment וניהול האוסף</h2>
+          </div>
+          <span class="text-xs bg-slate-800 text-emerald-300 px-3 py-1 rounded-full border border-slate-700">Composition & Collection Ops</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-xs">
+          <!-- Attributes & 3 Collection Operations -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-emerald-500/30 space-y-3">
+            <h4 class="font-bold text-emerald-300 text-sm">ניהול אוסף המתקנים (Amenities Collection):</h4>
+            <p class="text-slate-300">
+              המחלקה מחזיקה אוסף פנימי מסוג <code>set</code> (ממ"ד, מרפסת, מעלית, מזגן). כדי לענות על דרישת סעיף 2 במחוון, ממומשות <strong>3 פעולות מפורשות על האוסף</strong>:
+            </p>
+            <div class="space-y-2">
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-indigo-300 font-bold">1. add_amenity(amenity: str) -> None</span>
+                <p class="text-slate-400">מוסיפה מתקן חדש לקבוצה (שימוש ב-<code>add</code> של set).</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-indigo-300 font-bold">2. remove_amenity(amenity: str) -> None</span>
+                <p class="text-slate-400">מסירה מתקן בבטחה באמצעות <code>discard</code> כדי למנוע קריסה.</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-indigo-300 font-bold">3. has_amenity(amenity: str) -> bool</span>
+                <p class="text-slate-400">בדיקת שייכות מתקן באמצעות אופרטור <code>in</code> בסיבוכיות O(1).</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Properties, Validation & Static Method -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+            <h4 class="font-bold text-amber-300 text-sm">ולידציה, Property מחושב ומתודה סטטית:</h4>
+            <div class="space-y-2">
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-rose-400 font-bold">Validation על שכר דירה (@rent.setter):</span>
+                <p class="text-slate-400">בדיקה ש-<code>rent > 0</code>. נתון שלילי או אפס זורק <code>ValueError("שכר הדירה חייב להיות מספר חיובי")</code>.</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-emerald-400 font-bold">Computed Property (@property price_per_room):</span>
+                <p class="text-slate-400">מחשב דינמית שכר דירה ממוצע לחדר: <code>rent / rooms_total</code>.</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-purple-400 font-bold">Static Method (@staticmethod is_valid_city):</span>
+                <p class="text-slate-400">פעולת עזר לבדיקה ששם העיר אינו ריק ומופיע ברשימת הערים הנתמכות.</p>
+              </div>
+              <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-indigo-400 font-bold">בנאי אלטרנטיבי:</span>
+                <p class="text-slate-400"><code>from_dict(cls, data)</code> הממיר רשימת amenities ל-<code>set</code>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12: Deep Dive - Preferences & Match -->
+    <div class="slide w-full" id="slide-12">
+      <div class="space-y-6">
+        <div class="border-b border-slate-800 pb-3 flex justify-between items-end">
+          <div>
+            <span class="text-indigo-400 font-semibold text-sm">חלק ב' - סעיף 1 וסעיף 4</span>
+            <h2 class="text-3xl font-extrabold mt-1">מחלקות הסיוע: Preferences ו-Match</h2>
+          </div>
+          <span class="text-xs bg-slate-800 text-rose-300 px-3 py-1 rounded-full border border-slate-700">Encapsulation & Matching</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-xs">
+          <!-- Preferences Class -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-rose-500/30 space-y-3">
+            <h4 class="font-bold text-rose-300 text-sm flex items-center gap-1.5">
+              <span>🧬</span> Preferences (ניהול 22 הקריטריונים)
+            </h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <code>_cleanliness: int</code> – סולם 1 עד 5 מוגן ב-Property</li>
+              <li>• <code>allows_pets / is_smoker: bool</code> – קריטריוני סף</li>
+              <li>• <code>sleep_schedule / work_mode: str</code> – שגרה</li>
+              <li>• <code>kashrut_level / shabbat_observant: str</code> – כשרות ומסורת</li>
+            </ul>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span class="font-bold text-amber-300">Validation קפדני:</span>
+              <p class="text-slate-400">אם <code>cleanliness</code> אינו מספר שלם בין 1 ל-5, נזרק <code>ValueError("Cleanliness must be between 1 and 5")</code>.</p>
+            </div>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span class="font-bold text-indigo-300">מתודות עסקיות ו-Dunder:</span>
+              <p class="text-slate-400">• <code>has_conflict(other)</code> – זיהוי פסילה בינארית.</p>
+              <p class="text-slate-400">• <code>compatibility_score(other)</code> – חישוב ציון משוקלל.</p>
+              <p class="text-slate-400">• <code>__eq__</code> – השוואת שוויון העדפות מלאה.</p>
+            </div>
+          </div>
+
+          <!-- Match Class -->
+          <div class="bg-slate-950 p-5 rounded-2xl border border-indigo-500/30 space-y-3">
+            <h4 class="font-bold text-indigo-300 text-sm flex items-center gap-1.5">
+              <span>🤝</span> Match (ישות התאמה עסקית)
+            </h4>
+            <p class="text-slate-300">מייצגת חיבור הדדי בין שני משתמשים שהתבצע עליו Like הדדי.</p>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <code>match_id: str</code> – מזהה ייחודי לחיבור</li>
+              <li>• <code>seeker_id: str</code> – מזהה מחפש הדירה</li>
+              <li>• <code>host_id: str</code> – מזהה בעל החדר</li>
+              <li>• <code>score: float</code> – ציון ההתאמה הסופי (0 עד 100%)</li>
+              <li>• <code>status: str</code> – מצב ההתאמה ("pending" / "confirmed")</li>
+            </ul>
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+              <span class="font-bold text-emerald-300">הכנה קריטית לתור עדיפויות (HeapQ):</span>
+              <p class="text-slate-400">• מימוש מתודת <code>__lt__(self, other)</code> לפי ציון ההתאמה (<code>self.score < other.score</code>).</p>
+              <p class="text-slate-400">מאפשר לשלוף ישירות מ-<code>heapq</code> את ה-Match הטוב ביותר ללא שום קוד מיון נוסף!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13: Rubric Compliance Checklist -->
+    <div class="slide w-full" id="slide-13">
+      <div class="space-y-4">
+        <div class="border-b border-slate-800 pb-3 flex justify-between items-end">
+          <div>
+            <span class="text-indigo-400 font-semibold text-sm">בקרת איכות ותאימות</span>
+            <h2 class="text-3xl font-extrabold mt-1">טבלת עמידה במחוון הפרויקט (חלק ב')</h2>
+          </div>
+          <span class="text-xs bg-emerald-950 text-emerald-300 px-3 py-1 rounded-full border border-emerald-700">100% תאימות לסילבוס</span>
+        </div>
+
+        <div class="overflow-hidden rounded-xl border border-slate-800 text-xs">
+          <table class="w-full text-right border-collapse">
+            <thead class="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+              <tr>
+                <th class="p-3">דרישת המחוון בהוראות</th>
+                <th class="p-3">המימוש המתוכנן ב-flatmatch/models.py</th>
+                <th class="p-3 text-center">סטטוס</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 bg-slate-900/60 text-slate-300">
+              <tr>
+                <td class="p-3 font-semibold text-white">1. לפחות 4 מחלקות עסקיות עם בנאי רגיל, from_dict, str, repr</td>
+                <td class="p-3">5 מחלקות מלאות: User, ApartmentSeeker, RoommateSeeker, Apartment, Preferences, Match. בנאי רגיל, from_dict, str, repr בכולן.</td>
+                <td class="p-3 text-center text-emerald-400 font-bold">✔ מלא</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-white">2. הרכבה (Composition) עם לפחות שתי פעולות על אוסף</td>
+                <td class="p-3">Apartment מנהלת אוסף amenities (set) עם 3 פעולות: add_amenity, remove_amenity, has_amenity. כמו כן User מכיל Preferences ו-RoommateSeeker מכיל Apartment.</td>
+                <td class="p-3 text-center text-emerald-400 font-bold">✔ מלא</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-white">3. הורשה ופולימורפיזם ללא if/elif על טיפוסים</td>
+                <td class="p-3">User מחלקת בסיס, יורשות ApartmentSeeker ו-RoommateSeeker. דריסת get_role_summary ו-evaluate_dealbreakers.</td>
+                <td class="p-3 text-center text-emerald-400 font-bold">✔ מלא</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-white">3.1 מחלקה אבסטרקטית (ABC) עם @abstractmethod</td>
+                <td class="p-3">User יורשת מ-ABC, מתודות אבסטרקטיות get_role_summary ו-evaluate_dealbreakers. חסימת מופע ישיר.</td>
+                <td class="p-3 text-center text-emerald-400 font-bold">✔ מלא</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-white">4. Encapsulation, properties ו-validation (ValueError)</td>
+                <td class="p-3">3 שדות מוגנים עם setters: age (מעל 18), rent (חיובי), cleanliness (סולם 1-5). זריקת ValueError מנומק.</td>
+                <td class="p-3 text-center text-emerald-400 font-bold">✔ מלא</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-white">5. כלים נוספים: classmethod, staticmethod, computed property, lt/eq</td>
+                <td class="p-3">שימוש בכל 4 הכלים: from_dict, is_valid_city, price_per_room, ו-lt להשוואה ב-heapq.</td>
+                <td class="p-3 text-center text-emerald-400 font-bold">✔ מלא</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14: Ready for Implementation -->
+    <div class="slide w-full" id="slide-14">
+      <div class="text-center space-y-6 max-w-2xl mx-auto py-10">
+        <div class="text-5xl">🏁</div>
+        <h2 class="text-4xl font-extrabold">תכנון חלק ב' הושלם במלואו!</h2>
+        <p class="text-slate-300 text-base leading-relaxed">
+          כל שורה בהוראות הפרויקט ממופה למחלקות, שדות, מתודות וקשרים מדויקים. המודל מוכן לחלוטין לכתיבת הקוד ללא שום הנחות או אי-וודאות.
+        </p>
+        <div class="bg-indigo-950/60 p-5 rounded-2xl border border-indigo-500/40 text-sm text-indigo-200">
+          <strong>הפעולה הבאה של הארכיטקט:</strong> אישור אחרון, ומעבר לכתיבת הקובץ הראשון בפרויקט – <code>flatmatch/models.py</code>!
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer Navigation Info -->
+  <footer class="w-full border-t border-slate-800/80 bg-slate-950/60 px-6 py-3 text-center text-xs text-slate-500">
+    השתמש במקשי החצים ◄ ו-► במקלדת או בכפתורים למעלה כדי לדפדף בין 14 השקפים
+  </footer>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 14;
+
+    function updateSlide() {
+      document.querySelectorAll('.slide').forEach((slide, index) => {
+        if (index + 1 === currentSlide) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+      document.getElementById('slideCounter').innerText = `שקף ${currentSlide} / ${totalSlides}`;
+      document.getElementById('progressBar').style.width = `${(currentSlide / totalSlides) * 100}%`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    // Keyboard navigation (RTL aware: Left arrow moves forward, Right arrow moves backward)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') nextSlide();
+      if (e.key === 'ArrowRight') prevSlide();
+    });
+  </script>
+</body>
+</html>
