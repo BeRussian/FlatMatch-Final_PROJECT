@@ -2,6 +2,8 @@
 
 > **FlatMatch** is an intelligent shared-rental and roommate recommendation engine ("Tinder for Roommates") that matches apartment seekers with available rooms based on budget constraints, geographical preferences, lifestyle habits, and dealbreaker compatibility.
 
+🔗 **GitHub Repository:** [https://github.com/BeRussian/FlatMatch-Final_PROJECT](https://github.com/BeRussian/FlatMatch-Final_PROJECT)
+
 ---
 
 ## 🎯 1. Project Proposal & Business Overview (חלק א')
@@ -181,6 +183,7 @@ FlatMatch-Final_PROJECT/
 │   ├── iterators.py              # Custom iterables, generators & lazy pipeline
 │   └── context_managers.py       # Search session and apartment hold lifecycle managers
 ├── main.py                       # Central end-to-end demonstration scenario
+├── AI_USAGE.md                   # Documentation of AI tools, prompts, and validation
 ├── test_part_d.py                # Comprehensive test suite for Part D
 ├── pyproject.toml                # Standard Python package metadata
 ├── TASKS.md                      # Roadmap and requirements checklist
@@ -209,4 +212,39 @@ python test_part_d.py
 python -m flatmatch.processing
 python -m flatmatch.iterators
 python -m flatmatch.context_managers
+```
+
+---
+
+## 📜 10. Git Version Control Log (`git log --oneline --graph --all`)
+
+Below is the verified Git log output demonstrating the modular branching strategy, incremental commits, and clean merges:
+
+```text
+* 67266cf refactor(processing): prioritize intra-package relative import for models
+* 544f9c2 docs(tasks): mark Parts F and G completed, finalizing all milestone 1 tasks
+* b86ba79 docs(ai): add comprehensive AI_USAGE.md documentation for Part G
+* 276b049 docs(tasks): mark Part E as completed in checklist
+* cb739cb docs(readme): add architecture diagrams, data structure tables, lazy pipeline Q&A, and file map
+* f0deddc feat(main): implement centralized end-to-end demonstration scenario
+* 15a4448 feat(pkg): organize modules into flatmatch package, add __init__.py and pyproject.toml
+*   223b9c3 merge: merge feature/part-d (Iterators, Generators, Context Managers) into main
+|\  
+| * 3319685 test(part-d): add comprehensive verification suite and mark Part D complete in TASKS.md
+| * 5e830d1 feat(repository,context_managers): implement streaming jsonl repository and lifecycle context managers
+| * 73e27a6 feat(iterators): implement custom iterable, iterator, generator, and lazy pipeline
+|/  
+* 09aa38b docs(tasks): update commit accumulation status in checklist
+* d83654b style(processing): align comparison operators with course standards
+* 9e40b30 refactor(processing): simplify signatures using native types and remove unused typing module
+* a3b06ba feat(processing): add comprehensive validation runner and mark Part C complete in TASKS.md
+* 4da2a29 feat(processing): implement comprehensions and multi-field sorting functions
+* cadfd87 feat(processing): implement FIFO queue with deque and priority queue with heapq
+* 77e85a6 feat(processing): implement dictionary lookups, grouping, counting, and duplicate ID handling
+* db6202a feat(processing): implement list, tuple, unpacking, and set operations
+* bb9c296 fix(docs): fix Mermaid diagram syntax in MODELS_SUMMARY.md for GitHub renderer
+* ac15609 fix(output): ensure all runtime outputs and prints are strictly in English
+* 424010e docs: add models architecture summary and project roadmap tasks checklist
+* c80cc82 feat(models): implement OOP hierarchy, Apartment, Seekers, and validations
+* f233aba Initial commit
 ```
