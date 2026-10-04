@@ -126,10 +126,11 @@ classDiagram
 
 ## 🤖 5. Synthetic Data & Streaming Ingestion (חלק ד')
 
-- **AI Generation:** 20 diverse, realistic synthetic records in `data/sample_data.jsonl` (15 apartment seekers and 5 roommate seekers offering apartments).
-- **Streaming Pipeline:** `stream_users_from_jsonl()` reads line-by-line inside `with open(..., encoding="utf-8")` using Python's native file iterator. Neither `.read()` nor `.readlines()` is ever invoked.
-- **Deserialization:** Each JSON line is converted via `json.loads` and instantiated into domain objects via `@classmethod from_dict`.
-- **Integrity:** `FlatMatchRepository` verifies unique phone numbers during ingestion, raising a `ValueError` upon duplicate collision.
+- **AI Source & Documentation:** 20 diverse, realistic synthetic records generated with AI in `data/sample_data.jsonl` (15 apartment seekers and 5 roommate seekers offering apartments). Full prompt, schema constraints, and error corrections are documented in [`AI_USAGE.md`](AI_USAGE.md).
+- **Structure of `data/sample_data.jsonl`:** Formatted strictly as JSON Lines (one JSON object per line) containing fields for `type`, `name`, `age`, unique `phone`, nested `preferences`, and seeker-specific attributes (`max_budget`, `preferred_cities`) or apartment details (`city`, `rent`, `rooms`, `amenities`).
+- **Loading Process into `dict`:** `stream_users_from_jsonl()` streams lines lazily using Python's native file iterator within `with open(..., encoding="utf-8")`. Each line is parsed into a Python `dict` via `json.loads()`. Neither `.read()` nor `.readlines()` is ever used.
+- **Conversion to Domain Objects:** Raw dictionary entries are converted into domain objects via `@classmethod from_dict()` (`ApartmentSeeker.from_dict(record)` or `RoommateSeeker.from_dict(record)`), parsing nested objects (`Preferences`, `Apartment`) and converting list attributes to `set` (for apartment amenities).
+- **Data Validation & Verification:** Field values are rigorously validated during instantiation via `@property` setters (checking valid ages $18 \le \text{age} \le 120$, positive budgets/rents, supported cities, and cleanliness $1 \dots 5$). `FlatMatchRepository` ensures phone number uniqueness ($O(1)$ duplicate prevention).
 
 ---
 
@@ -161,11 +162,19 @@ Constructed entirely using Generator Expressions without intermediate lists:
 
 ---
 
-## 🛡️ 7. Context Managers (`context_managers.py`)
+## 🛡️ 7. Context Managers & Exception Safety (`context_managers.py`)
 
-- `SearchSessionContext`: Manages active user search sessions with start/end timestamps, candidate evaluation tracking, and execution duration measurement.
-- `ApartmentHoldContext`: Manages temporary apartment reservation holds during applicant review.
-- **Exception Safety:** Both context managers implement `__enter__` and `__exit__`. In the event of an exception, state is cleanly rolled back (e.g. apartment status reverts to `AVAILABLE`), and `__exit__` returns `False` so exceptions are never swallowed.
+FlatMatch implements two lifecycle Context Managers using `__enter__` and `__exit__` to ensure resource cleanup and reliable state guarantees:
+
+1. **`SearchSessionContext` (User Search Session Lifecycle):**
+   - **`__enter__()`**: Initializes search session metadata, records start timestamp, marks session status as `ACTIVE`, and returns the session tracker object to the `with` block.
+   - **Normal Exit (`__exit__` without exception)**: Computes elapsed time, updates status to `CLOSED`, logs performance metrics (candidates evaluated, matches discovered), and frees session resources.
+   - **Behavior Upon Exception (`exc_type is not None`)**: Catches the in-flight exception, sets session status to `ABORTED_WITH_ERROR`, logs error diagnostics and duration, cleans up temporary search state, and **returns `False`** so the caller receives the unsuppressed exception for proper upstream handling.
+
+2. **`ApartmentHoldContext` (Apartment Reservation & Rollback):**
+   - **`__enter__()`**: Places the apartment in `ON_HOLD` status for a specific applicant, preventing conflicting reservations during application review.
+   - **Normal Exit (`__exit__` without exception)**: Upon successful applicant review, transitions or restores apartment status smoothly.
+   - **Behavior Upon Exception (`exc_type is not None`)**: Automatically triggers a state rollback, resetting the apartment status immediately back to `AVAILABLE`, logs the rollback event, and **returns `False`** so the exception propagates without being silently swallowed.
 
 ---
 
