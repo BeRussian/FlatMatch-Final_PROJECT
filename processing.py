@@ -103,3 +103,79 @@ def demonstrate_set_mutation(amenities: Set[str]) -> Dict[str, Any]:
         "final_set": s,
         "key_error_caught": key_error_caught
     }
+
+
+# ==============================================================================
+# 3. Dictionaries (Lookup, Grouping, and Counting)
+# ==============================================================================
+
+def build_user_lookup(users: List[User]) -> Dict[str, User]:
+    """
+    Builds a primary dictionary for O(1) lookup of a User object by their unique ID (phone number).
+    """
+    lookup: Dict[str, User] = {}
+    for user in users:
+        add_user_to_lookup(lookup, user.phone, user, allow_overwrite=False)
+    return lookup
+
+
+def add_user_to_lookup(
+    user_dict: Dict[str, User],
+    user_id: str,
+    user_obj: User,
+    allow_overwrite: bool = False
+) -> None:
+    """
+    Explicit handling of duplicate keys when adding a user:
+    - If allow_overwrite is False and the ID exists, raises ValueError.
+    - If allow_overwrite is True, updates the entry.
+    """
+    if user_id in user_dict and not allow_overwrite:
+        raise ValueError(f"Registration Error: User ID '{user_id}' already exists in registry.")
+    user_dict[user_id] = user_obj
+
+
+def find_user_by_id(user_dict: Dict[str, User], user_id: str) -> Optional[User]:
+    """
+    Demonstrates safe lookup with .get() when the absence of a key is an expected condition.
+    Returns None if the key does not exist.
+    """
+    return user_dict.get(user_id, None)
+
+
+def group_seekers_by_city(seekers: List[ApartmentSeeker]) -> Dict[str, List[ApartmentSeeker]]:
+    """
+    Secondary dictionary purpose: Grouping items (seekers) by category (city).
+    """
+    city_groups: Dict[str, List[ApartmentSeeker]] = {}
+    for seeker in seekers:
+        for city in seeker.preferred_cities:
+            if city not in city_groups:
+                city_groups[city] = []
+            city_groups[city].append(seeker)
+    return city_groups
+
+
+def count_seekers_by_city(seekers: List[ApartmentSeeker]) -> Dict[str, int]:
+    """
+    Secondary dictionary purpose: Counting occurrences per category (seekers per city).
+    """
+    counts: Dict[str, int] = {}
+    for seeker in seekers:
+        for city in seeker.preferred_cities:
+            counts[city] = counts.get(city, 0) + 1
+    return counts
+
+
+def format_grouped_summary(grouped: Dict[str, List[ApartmentSeeker]]) -> List[str]:
+    """
+    Demonstrates iterating over dictionary items using .items() with tuple unpacking:
+    'for key, value in dictionary.items():'
+    """
+    summaries = []
+    # Loop over .items() with unpacking of key and value
+    for city, seekers_list in grouped.items():
+        names = ", ".join(s.name for s in seekers_list)
+        summaries.append(f"{city}: {len(seekers_list)} seekers ({names})")
+    return summaries
+
