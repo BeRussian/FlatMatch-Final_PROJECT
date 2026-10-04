@@ -350,4 +350,157 @@ def sort_apartments_by_city_and_rent(owners: List[RoommateSeeker]) -> List[Roomm
     return sorted(owners, key=lambda o: (o.apartment.city, o.apartment.rent))
 
 
+# ==============================================================================
+# Comprehensive Demonstration & Verification Runner
+# ==============================================================================
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("FlatMatch - Part C: Data Structures & Collections Demo")
+    print("=" * 60)
+
+    seekers = sample_apartment_seekers
+    owners = sample_roommate_seekers
+
+    # 1. Lists, Tuples, and Unpacking (*)
+    print("\n--- 1. Lists, Tuples, and Unpacking (*) ---")
+    record = create_match_record(seekers[0], owners[0])
+    print(f"Sample Immutable Match Tuple: {record}")
+    assert isinstance(record, tuple) and len(record) == 4
+
+    top_pick, runner_up, remaining = partition_candidates(seekers)
+    print(f"Top Pick: {top_pick.name}")
+    print(f"Runner-up: {runner_up.name}")
+    print(f"Remaining Candidates ({len(remaining)}): {[s.name for s in remaining]}")
+    assert len(remaining) == len(seekers) - 2
+
+    # 2. Advanced Set Operations
+    print("\n--- 2. Advanced Set Operations ---")
+    desired = {"Air Conditioner", "Balcony", "Elevator", "Parking"}
+    available = owners[0].apartment.amenities
+    print(f"Desired Amenities: {desired}")
+    print(f"Apartment Available Amenities: {available}")
+
+    comparison = compare_amenities(desired, available)
+    print(f"Has Air Conditioner (in test): {comparison['has_air_conditioner']}")
+    print(f"Matching Amenities (&): {comparison['matching']}")
+    print(f"Missing Amenities (-): {comparison['missing']}")
+    print(f"Total Unique Combined (|): {comparison['all_combined']}")
+    assert "Air Conditioner" in comparison["matching"]
+
+    mutation_res = demonstrate_set_mutation(available)
+    print(f"Safe discard & remove demonstration successful (KeyError caught: {mutation_res['key_error_caught']})")
+    assert mutation_res["key_error_caught"] is True
+
+    # 3. Dictionaries (Lookup, Grouping, Counting)
+    print("\n--- 3. Dictionaries (Lookup, Grouping, Counting) ---")
+    all_users = seekers + owners
+    directory = build_user_lookup(all_users)
+    print(f"Indexed {len(directory)} users by unique phone ID.")
+
+    # Safe retrieval with .get()
+    found = find_user_by_id(directory, "050-1112233")
+    not_found = find_user_by_id(directory, "000-0000000")
+    print(f"Found User with .get(): {found.name if found else 'None'}")
+    print(f"Missing User with .get() (safe return): {not_found}")
+    assert found is not None and not_found is None
+
+    # Duplicate key collision check
+    duplicate_caught = False
+    try:
+        add_user_to_lookup(directory, seekers[0].phone, seekers[0], allow_overwrite=False)
+    except ValueError as e:
+        duplicate_caught = True
+        print(f"Explicit duplicate prevention caught: {e}")
+    assert duplicate_caught is True
+
+    # Grouping and counting
+    grouped = group_seekers_by_city(seekers)
+    counts = count_seekers_by_city(seekers)
+    print(f"Seeker Counts per City: {counts}")
+    print("Grouped Summary (.items() loop with unpacking):")
+    for summary_line in format_grouped_summary(grouped):
+        print(f"  * {summary_line}")
+
+    # 4. FIFO Queue with deque
+    print("\n--- 4. FIFO Queue (collections.deque) ---")
+    app_queue = RoommateApplicationQueue()
+    app_queue.enqueue_application("Alice Cohen", "Apt-TLV-101", "10:00 AM")
+    app_queue.enqueue_application("Ben Levi", "Apt-TLV-101", "10:15 AM")
+    app_queue.enqueue_application("Dana Mizrahi", "Apt-TLV-101", "10:30 AM")
+    print(f"Queued {len(app_queue)} applications based on arrival order (FIFO fairness).")
+
+    app1 = app_queue.process_next_application()
+    app2 = app_queue.process_next_application()
+    app3 = app_queue.process_next_application()
+    empty_app = app_queue.process_next_application()
+    print(f"Processed 1st: {app1[0]} (Arrival: {app1[2]})")
+    print(f"Processed 2nd: {app2[0]} (Arrival: {app2[2]})")
+    print(f"Processed 3rd: {app3[0]} (Arrival: {app3[2]})")
+    print(f"Processing on empty queue returns safely: {empty_app}")
+    assert app1[0] == "Alice Cohen" and empty_app is None
+
+    # 5. Priority Queue with heapq
+    print("\n--- 5. Priority Queue (heapq) ---")
+    urgent_queue = UrgentCandidateQueue()
+    # Explicit convention: Lower number = Higher priority
+    urgent_queue.push_candidate(seekers[2], priority=3, reason="Next month move-in")
+    urgent_queue.push_candidate(seekers[0], priority=1, reason="Emergency / Immediate move-in")
+    urgent_queue.push_candidate(seekers[1], priority=2, reason="Flexible within 2 weeks (First)")
+    urgent_queue.push_candidate(seekers[3], priority=2, reason="Flexible within 2 weeks (Second)")
+
+    print(f"Enqueued {len(urgent_queue)} candidates into min-heap with urgency priorities.")
+    first_served = urgent_queue.pop_candidate()
+    second_served = urgent_queue.pop_candidate()
+    third_served = urgent_queue.pop_candidate()
+    fourth_served = urgent_queue.pop_candidate()
+    empty_popped = urgent_queue.pop_candidate()
+
+    print(f"1st served: {first_served}")
+    print(f"2nd served: {second_served}")
+    print(f"3rd served: {third_served}")
+    print(f"4th served: {fourth_served}")
+    print(f"Popping from empty priority queue returns safely: {empty_popped}")
+    assert first_served.priority == 1 and first_served.seeker.name == "Alice Cohen"
+    assert second_served.priority == 2 and second_served.seeker.name == "Ben Levi"
+    assert third_served.priority == 2 and third_served.seeker.name == "Eitan Sharon"
+    assert fourth_served.priority == 3 and fourth_served.seeker.name == "Dana Mizrahi"
+    assert empty_popped is None
+
+    # 6. Comprehensions
+    print("\n--- 6. Comprehensions (List, Set, Dict) ---")
+    budget_filtered = filter_seekers_by_budget(seekers, min_budget=3500)
+    print(f"List Comprehension (Budget >= 3500): {budget_filtered}")
+    assert len(budget_filtered) == 3
+
+    unique_cities = extract_unique_preferred_cities(seekers)
+    print(f"Set Comprehension (Unique Cities): {sorted(unique_cities)}")
+    assert "Tel Aviv" in unique_cities and "Jerusalem" in unique_cities
+
+    phone_to_budget = map_seeker_phones_to_budgets(seekers)
+    print(f"Dict Comprehension (Phone -> Budget): {phone_to_budget}")
+    assert phone_to_budget["050-1112233"] == 3200.0
+
+    # 7. Sorting and Functions as Values
+    print("\n--- 7. Sorting & Functions as Values ---")
+    by_budget = sort_seekers_by_budget_descending(seekers)
+    print(f"Sorted by budget (named function 'get_seeker_budget'): {[f'{s.name}: {s.max_budget}' for s in by_budget]}")
+    assert by_budget[0].max_budget >= by_budget[1].max_budget
+
+    by_age = sort_seekers_by_age(seekers)
+    print(f"Sorted by age (lambda function): {[f'{s.name}: {s.age}' for s in by_age]}")
+    assert by_age[0].age <= by_age[-1].age
+
+    by_city_and_rent = sort_apartments_by_city_and_rent(owners)
+    print("Sorted apartments by (City, Rent) using 2-field tuple:")
+    for o in by_city_and_rent:
+        print(f"  * {o.apartment.city} - Rent: {o.apartment.rent} NIS (Host: {o.name})")
+    assert by_city_and_rent[0].apartment.city <= by_city_and_rent[-1].apartment.city
+
+    print("\n" + "=" * 60)
+    print("All Part C requirements verified and passed successfully!")
+    print("=" * 60)
+
+
+
 
