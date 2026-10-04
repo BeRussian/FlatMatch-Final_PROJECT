@@ -527,25 +527,25 @@ sample_apartment_seekers, sample_roommate_seekers = create_sample_data()
 
 
 if __name__ == "__main__":
-    print("=== בדיקת מודלים ומופעים לדוגמה ===")
+    print("=== Models and Sample Instances Verification ===")
     seekers, owners = sample_apartment_seekers, sample_roommate_seekers
     
-    print(f"נוצרו בהצלחה {len(seekers)} מחפשי דירה ו-{len(owners)} מציעי דירה.")
-    print("\n--- דוגמה למחפש דירה ---")
+    print(f"Successfully created {len(seekers)} Apartment Seekers and {len(owners)} Roommate Seekers.")
+    print("\n--- Sample Apartment Seeker ---")
     print(seekers[0].get_role_summary())
     
-    print("\n--- דוגמה למציע דירה ---")
+    print("\n--- Sample Roommate Seeker ---")
     print(owners[0].get_role_summary())
     
-    print("\n--- בדיקת סינון Dealbreaker ---")
+    print("\n--- Dealbreaker Filtering Verification ---")
     # Yossi דורש 3500 שכ"ד, התקציב של Alice הוא 3200 -> אמור להיות Dealbreaker
     conflict_alice_yossi = seekers[0].evaluate_dealbreakers(owners[0])
-    print(f"האם יש Dealbreaker בין Alice ל-Yossi (תקציב 3200 מול שכ\"ד 3500)? {conflict_alice_yossi}")
+    print(f"Dealbreaker between Alice and Yossi (Budget 3200 vs Rent 3500): {conflict_alice_yossi}")
     assert conflict_alice_yossi == True
 
     # Ben Levi תקציב 4200, Noa Peretz שכ"ד 3000, שניהם מאשרים חיות ואף אחד לא מעשן -> אין Dealbreaker!
     conflict_ben_noa = seekers[1].evaluate_dealbreakers(owners[1])
-    print(f"האם יש Dealbreaker בין Ben ל-Noa (מתאימים לחלוטין)? {conflict_ben_noa}")
+    print(f"Dealbreaker between Ben and Noa (Full Match): {conflict_ben_noa}")
     assert conflict_ben_noa == False
 
-    print("\nכל הבדיקות הלוגיות עברו בהצלחה!")
+    print("\nAll logic tests passed successfully!")
