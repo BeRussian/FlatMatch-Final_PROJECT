@@ -8,10 +8,16 @@ filtering, queuing, and sorting mechanisms for the FlatMatch platform.
 from collections import deque
 import heapq
 
-from models import (
-    sample_apartment_seekers,
-    sample_roommate_seekers
-)
+try:
+    from flatmatch.models import (
+        sample_apartment_seekers,
+        sample_roommate_seekers
+    )
+except ImportError:
+    from .models import (
+        sample_apartment_seekers,
+        sample_roommate_seekers
+    )
 
 
 # ==============================================================================

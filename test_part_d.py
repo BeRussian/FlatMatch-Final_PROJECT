@@ -9,15 +9,15 @@ Runs and verifies all components of Part D:
 """
 
 import os
-from models import Apartment, ApartmentSeeker, Preferences
-from iterators import (
+from flatmatch.models import Apartment, ApartmentSeeker, Preferences
+from flatmatch.iterators import (
     SeekerCollection,
     SeekerIterator,
     stream_budget_candidates,
     build_lazy_seeker_pipeline
 )
-from repository import stream_users_from_jsonl, FlatMatchRepository
-from context_managers import SearchSessionContext, ApartmentHoldContext
+from flatmatch.repository import stream_users_from_jsonl, FlatMatchRepository
+from flatmatch.context_managers import SearchSessionContext, ApartmentHoldContext
 
 
 def test_custom_iterators():

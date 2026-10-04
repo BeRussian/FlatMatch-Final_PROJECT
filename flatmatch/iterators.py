@@ -6,7 +6,10 @@ generator functions with yield, and a 3-stage lazy evaluation pipeline
 using Generator Expressions.
 """
 
-from models import ApartmentSeeker, Preferences, sample_apartment_seekers
+try:
+    from flatmatch.models import ApartmentSeeker, Preferences, sample_apartment_seekers
+except ImportError:
+    from .models import ApartmentSeeker, Preferences, sample_apartment_seekers
 
 
 # ==============================================================================

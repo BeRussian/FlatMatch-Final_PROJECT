@@ -8,7 +8,10 @@ This module implements custom context managers using __enter__ and __exit__:
 """
 
 import time
-from models import Apartment, ApartmentSeeker
+try:
+    from flatmatch.models import Apartment, ApartmentSeeker
+except ImportError:
+    from .models import Apartment, ApartmentSeeker
 
 
 class SearchSessionContext:

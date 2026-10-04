@@ -8,7 +8,10 @@ ID duplicate validation, and O(1) indexed lookup.
 
 import json
 import os
-from models import User, ApartmentSeeker, RoommateSeeker, Apartment, Preferences
+try:
+    from flatmatch.models import User, ApartmentSeeker, RoommateSeeker, Apartment, Preferences
+except ImportError:
+    from .models import User, ApartmentSeeker, RoommateSeeker, Apartment, Preferences
 
 
 def parse_user_record(data: dict) -> User:
@@ -61,6 +64,11 @@ def stream_users_from_jsonl(filepath: str):
 
             user_obj = parse_user_record(record_dict)
             yield user_obj
+
+
+def load_users_from_jsonl(filepath: str) -> list:
+    """Convenience function to load and return all users from a JSONL file into a list."""
+    return list(stream_users_from_jsonl(filepath))
 
 
 class FlatMatchRepository:
