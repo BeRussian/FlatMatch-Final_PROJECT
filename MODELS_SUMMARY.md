@@ -64,11 +64,10 @@ classDiagram
         +evaluate_dealbreakers(other) bool
     }
 
-    User <|-- ApartmentSeeker : Inheritance (הורשה)
-    User <|-- RoommateSeeker : Inheritance (הורשה)
-    User *-- Preferences : Composition (הרכבה)
-    RoommateSeeker *-- Apartment : Composition (הרכבה)
-    Apartment *-- "Set" : Contains (מכיל מתקנים)
+    User <|-- ApartmentSeeker : Inheritance
+    User <|-- RoommateSeeker : Inheritance
+    User *-- Preferences : Composition
+    RoommateSeeker *-- Apartment : Composition
 ```
 
 ---
@@ -77,13 +76,13 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    Start([התחלת בדיקת מועמדות בין משתמשים]) --> Step1{האם יש סתירת עישון או חיות מחמד?}
-    Step1 -- כן --> Dealbreaker([❌ פסילה מוחלטת: סתירת הרגלי חיים])
-    Step1 -- לא --> Step2{האם שכר הדירה חורג מתקציב המחפש?}
-    Step2 -- כן --> Dealbreaker([❌ פסילה מוחלטת: חריגת תקציב])
-    Step2 -- לא --> Step3{האם עיר הדירה ברשימת הערים המבוקשות?}
-    Step3 -- לא --> Dealbreaker([❌ פסילה מוחלטת: מיקום לא מתאים])
-    Step3 -- כן --> Match([✅ מעבר תנאי סף בהצלחה: מעבר לשלב דירוג וציון התאמה])
+    Start["התחלת בדיקת מועמדות בין משתמשים"] --> Step1{"האם יש סתירת עישון או חיות מחמד?"}
+    Step1 -- "כן" --> Reject1["פסילה מוחלטת: סתירת הרגלי חיים"]
+    Step1 -- "לא" --> Step2{"האם שכר הדירה חורג מתקציב המחפש?"}
+    Step2 -- "כן" --> Reject2["פסילה מוחלטת: חריגת תקציב"]
+    Step2 -- "לא" --> Step3{"האם עיר הדירה ברשימת הערים המבוקשות?"}
+    Step3 -- "לא" --> Reject3["פסילה מוחלטת: מיקום לא מתאים"]
+    Step3 -- "כן" --> Match["מעבר תנאי סף בהצלחה: מעבר לחישוב ציון התאמה"]
 ```
 
 ---
