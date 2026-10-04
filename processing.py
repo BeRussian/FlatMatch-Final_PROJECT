@@ -287,3 +287,67 @@ class UrgentCandidateQueue:
         return len(self._heap)
 
 
+# ==============================================================================
+# 6. Comprehensions (List, Set, Dict)
+# ==============================================================================
+
+def filter_seekers_by_budget(seekers: List[ApartmentSeeker], min_budget: float) -> List[str]:
+    """
+    List comprehension for filtering and formatting:
+    Filters seekers with at least min_budget and formats their name and budget.
+    """
+    return [f"{s.name} ({s.max_budget:.0f} NIS)" for s in seekers if s.max_budget >= min_budget]
+
+
+def extract_unique_preferred_cities(seekers: List[ApartmentSeeker]) -> Set[str]:
+    """
+    Set comprehension for extracting unique values:
+    Flattens preferred cities from all seekers into a set of unique city names.
+    """
+    return {city for s in seekers for city in s.preferred_cities}
+
+
+def map_seeker_phones_to_budgets(seekers: List[ApartmentSeeker]) -> Dict[str, float]:
+    """
+    Dict comprehension for creating an index/mapping:
+    Maps each seeker's unique phone number to their maximum budget.
+    """
+    return {s.phone: s.max_budget for s in seekers}
+
+
+# ==============================================================================
+# 7. Sorting and Functions as Values
+# ==============================================================================
+
+def get_seeker_budget(seeker: ApartmentSeeker) -> float:
+    """
+    Regular named function used as the 'key' argument in sorted().
+    """
+    return seeker.max_budget
+
+
+def sort_seekers_by_budget_descending(seekers: List[ApartmentSeeker]) -> List[ApartmentSeeker]:
+    """
+    Demonstrates sorted() using a regular named function as key.
+    Sorts seekers by budget in descending order.
+    """
+    return sorted(seekers, key=get_seeker_budget, reverse=True)
+
+
+def sort_seekers_by_age(seekers: List[ApartmentSeeker]) -> List[ApartmentSeeker]:
+    """
+    Demonstrates sorted() using a concise lambda function as key.
+    Sorts seekers by age in ascending order.
+    """
+    return sorted(seekers, key=lambda s: s.age)
+
+
+def sort_apartments_by_city_and_rent(owners: List[RoommateSeeker]) -> List[RoommateSeeker]:
+    """
+    Demonstrates sorted() by TWO fields using a tuple:
+    First by city alphabetically, then by monthly rent in ascending order.
+    """
+    return sorted(owners, key=lambda o: (o.apartment.city, o.apartment.rent))
+
+
+
