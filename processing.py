@@ -179,3 +179,111 @@ def format_grouped_summary(grouped: Dict[str, List[ApartmentSeeker]]) -> List[st
         summaries.append(f"{city}: {len(seekers_list)} seekers ({names})")
     return summaries
 
+
+# ==============================================================================
+# 4. FIFO Queue using collections.deque
+# ==============================================================================
+
+class RoommateApplicationQueue:
+    """
+    FIFO Queue for processing incoming roommate applications by arrival order.
+    
+    Business rationale:
+    In a high-demand shared rental market, applications must be reviewed strictly
+    in the order they arrive (First-In, First-Out) to ensure transparency, fairness,
+    and prevent bias towards applicants.
+    """
+
+    def __init__(self):
+        self._queue = deque()
+
+    def enqueue_application(self, applicant_name: str, apartment_id: str, timestamp: str) -> None:
+        """
+        Adds a new application to the back of the queue using append().
+        """
+        self._queue.append((applicant_name, apartment_id, timestamp))
+
+    def process_next_application(self) -> Optional[Tuple[str, str, str]]:
+        """
+        Removes and returns the oldest application using popleft().
+        Gracefully handles empty queue state without crashing or raising IndexError.
+        """
+        if not self._queue:
+            return None
+        return self._queue.popleft()
+
+    def is_empty(self) -> bool:
+        return len(self._queue) == 0
+
+    def __len__(self) -> int:
+        return len(self._queue)
+
+
+# ==============================================================================
+# 5. Priority Queue using heapq
+# ==============================================================================
+
+class PriorityCandidate:
+    """
+    Encapsulates a candidate with an explicit priority level and tie-breaker.
+
+    Priority Convention:
+    LOWER number represents HIGHER priority (standard min-heap behavior):
+    - Priority 1: Emergency / Immediate Move-In (Urgent)
+    - Priority 2: High Priority (Flexible within 2 weeks)
+    - Priority 3: Standard Priority (Planning ahead / Next month)
+
+    Tie-breaking:
+    When priorities are equal, entry_id ensures deterministic ordering
+    without attempting to compare User objects directly.
+    """
+
+    def __init__(self, priority: int, entry_id: int, seeker: ApartmentSeeker, reason: str = ""):
+        self.priority = priority
+        self.entry_id = entry_id
+        self.seeker = seeker
+        self.reason = reason
+
+    def __lt__(self, other: "PriorityCandidate") -> bool:
+        if not isinstance(other, PriorityCandidate):
+            return NotImplemented
+        if self.priority != other.priority:
+            return self.priority < other.priority
+        # Tie-breaker by chronological insertion order
+        return self.entry_id < other.entry_id
+
+    def __str__(self) -> str:
+        return f"[Priority {self.priority}] {self.seeker.name} ({self.reason})"
+
+
+class UrgentCandidateQueue:
+    """
+    Priority Queue managing candidates where urgency supersedes arrival time.
+    Note: The internal list of a heap maintains the heap invariant, but is NOT fully sorted.
+    """
+
+    def __init__(self):
+        self._heap: List[PriorityCandidate] = []
+        self._counter: int = 0
+
+    def push_candidate(self, seeker: ApartmentSeeker, priority: int, reason: str = "") -> None:
+        """
+        Pushes a candidate into the priority queue using heapq.heappush().
+        """
+        candidate = PriorityCandidate(priority, self._counter, seeker, reason)
+        self._counter += 1
+        heapq.heappush(self._heap, candidate)
+
+    def pop_candidate(self) -> Optional[PriorityCandidate]:
+        """
+        Pops and returns the highest priority candidate using heapq.heappop().
+        Handles empty queue gracefully without crashing.
+        """
+        if not self._heap:
+            return None
+        return heapq.heappop(self._heap)
+
+    def __len__(self) -> int:
+        return len(self._heap)
+
+
