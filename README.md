@@ -230,6 +230,8 @@ python -m flatmatch.context_managers
 Below is the verified Git log output demonstrating the modular branching strategy, incremental commits, and clean merges:
 
 ```text
+* 5969601 docs(readme): expand sections 5 and 7 to explicitly detail AI schema, dict loading, and exception rollback
+* b9fac93 docs(readme): sync git log in section 10
 * a954ba2 docs(readme): add GitHub repository link, AI_USAGE.md to file map, and git graph
 * 67266cf refactor(processing): prioritize intra-package relative import for models
 * 544f9c2 docs(tasks): mark Parts F and G completed, finalizing all milestone 1 tasks
