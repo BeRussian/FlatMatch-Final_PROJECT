@@ -9,12 +9,12 @@ from collections import deque
 import heapq
 
 try:
-    from flatmatch.models import (
+    from .models import (
         sample_apartment_seekers,
         sample_roommate_seekers
     )
 except ImportError:
-    from .models import (
+    from models import (
         sample_apartment_seekers,
         sample_roommate_seekers
     )
