@@ -7,14 +7,8 @@ filtering, queuing, and sorting mechanisms for the FlatMatch platform.
 
 from collections import deque
 import heapq
-from typing import List, Tuple, Dict, Set, Optional, Any
 
 from models import (
-    Preferences,
-    Apartment,
-    User,
-    ApartmentSeeker,
-    RoommateSeeker,
     sample_apartment_seekers,
     sample_roommate_seekers
 )
@@ -24,7 +18,7 @@ from models import (
 # 1. Lists, Tuples, and Extended Unpacking (*)
 # ==============================================================================
 
-def create_match_record(seeker: ApartmentSeeker, owner: RoommateSeeker) -> Tuple[str, str, str, float]:
+def create_match_record(seeker, owner) -> tuple:
     """
     Creates an immutable, fixed record (tuple) representing a potential match.
     Tuples are ideal for heterogeneous records that should not be mutated.
@@ -32,7 +26,7 @@ def create_match_record(seeker: ApartmentSeeker, owner: RoommateSeeker) -> Tuple
     return (seeker.name, owner.name, owner.apartment.city, owner.apartment.rent)
 
 
-def partition_candidates(candidates: List[Any]) -> Tuple[Any, Any, List[Any]]:
+def partition_candidates(candidates: list) -> tuple:
     """
     Partitions an ordered mutable list of candidates using * (extended unpacking).
     Extracts the top pick, runner-up, and collects the remaining candidates into a list.
@@ -49,7 +43,7 @@ def partition_candidates(candidates: List[Any]) -> Tuple[Any, Any, List[Any]]:
 # 2. Advanced Set Operations
 # ==============================================================================
 
-def compare_amenities(desired_amenities: Set[str], available_amenities: Set[str]) -> Dict[str, Any]:
+def compare_amenities(desired_amenities: set, available_amenities: set) -> dict:
     """
     Demonstrates set operations for matching seeker requirements with apartment amenities:
     - Membership testing using 'in'
@@ -73,7 +67,7 @@ def compare_amenities(desired_amenities: Set[str], available_amenities: Set[str]
     }
 
 
-def demonstrate_set_mutation(amenities: Set[str]) -> Dict[str, Any]:
+def demonstrate_set_mutation(amenities: set) -> dict:
     """
     Demonstrates set mutation operations:
     - add: adds a unique element
@@ -89,8 +83,7 @@ def demonstrate_set_mutation(amenities: Set[str]) -> Dict[str, Any]:
     s.discard("NonExistentItem")
 
     # 3. remove (strict - raises KeyError if item is not found)
-    removed_item = "Gym"
-    s.remove(removed_item)
+    s.remove("Gym")
 
     # Verify that remove on absent item raises KeyError
     key_error_caught = False
@@ -109,22 +102,17 @@ def demonstrate_set_mutation(amenities: Set[str]) -> Dict[str, Any]:
 # 3. Dictionaries (Lookup, Grouping, and Counting)
 # ==============================================================================
 
-def build_user_lookup(users: List[User]) -> Dict[str, User]:
+def build_user_lookup(users: list) -> dict:
     """
     Builds a primary dictionary for O(1) lookup of a User object by their unique ID (phone number).
     """
-    lookup: Dict[str, User] = {}
+    lookup = {}
     for user in users:
         add_user_to_lookup(lookup, user.phone, user, allow_overwrite=False)
     return lookup
 
 
-def add_user_to_lookup(
-    user_dict: Dict[str, User],
-    user_id: str,
-    user_obj: User,
-    allow_overwrite: bool = False
-) -> None:
+def add_user_to_lookup(user_dict: dict, user_id: str, user_obj, allow_overwrite: bool = False) -> None:
     """
     Explicit handling of duplicate keys when adding a user:
     - If allow_overwrite is False and the ID exists, raises ValueError.
@@ -135,7 +123,7 @@ def add_user_to_lookup(
     user_dict[user_id] = user_obj
 
 
-def find_user_by_id(user_dict: Dict[str, User], user_id: str) -> Optional[User]:
+def find_user_by_id(user_dict: dict, user_id: str):
     """
     Demonstrates safe lookup with .get() when the absence of a key is an expected condition.
     Returns None if the key does not exist.
@@ -143,11 +131,11 @@ def find_user_by_id(user_dict: Dict[str, User], user_id: str) -> Optional[User]:
     return user_dict.get(user_id, None)
 
 
-def group_seekers_by_city(seekers: List[ApartmentSeeker]) -> Dict[str, List[ApartmentSeeker]]:
+def group_seekers_by_city(seekers: list) -> dict:
     """
     Secondary dictionary purpose: Grouping items (seekers) by category (city).
     """
-    city_groups: Dict[str, List[ApartmentSeeker]] = {}
+    city_groups = {}
     for seeker in seekers:
         for city in seeker.preferred_cities:
             if city not in city_groups:
@@ -156,18 +144,18 @@ def group_seekers_by_city(seekers: List[ApartmentSeeker]) -> Dict[str, List[Apar
     return city_groups
 
 
-def count_seekers_by_city(seekers: List[ApartmentSeeker]) -> Dict[str, int]:
+def count_seekers_by_city(seekers: list) -> dict:
     """
     Secondary dictionary purpose: Counting occurrences per category (seekers per city).
     """
-    counts: Dict[str, int] = {}
+    counts = {}
     for seeker in seekers:
         for city in seeker.preferred_cities:
             counts[city] = counts.get(city, 0) + 1
     return counts
 
 
-def format_grouped_summary(grouped: Dict[str, List[ApartmentSeeker]]) -> List[str]:
+def format_grouped_summary(grouped: dict) -> list:
     """
     Demonstrates iterating over dictionary items using .items() with tuple unpacking:
     'for key, value in dictionary.items():'
@@ -203,7 +191,7 @@ class RoommateApplicationQueue:
         """
         self._queue.append((applicant_name, apartment_id, timestamp))
 
-    def process_next_application(self) -> Optional[Tuple[str, str, str]]:
+    def process_next_application(self):
         """
         Removes and returns the oldest application using popleft().
         Gracefully handles empty queue state without crashing or raising IndexError.
@@ -238,7 +226,7 @@ class PriorityCandidate:
     without attempting to compare User objects directly.
     """
 
-    def __init__(self, priority: int, entry_id: int, seeker: ApartmentSeeker, reason: str = ""):
+    def __init__(self, priority: int, entry_id: int, seeker, reason: str = ""):
         self.priority = priority
         self.entry_id = entry_id
         self.seeker = seeker
@@ -263,10 +251,10 @@ class UrgentCandidateQueue:
     """
 
     def __init__(self):
-        self._heap: List[PriorityCandidate] = []
+        self._heap = []
         self._counter: int = 0
 
-    def push_candidate(self, seeker: ApartmentSeeker, priority: int, reason: str = "") -> None:
+    def push_candidate(self, seeker, priority: int, reason: str = "") -> None:
         """
         Pushes a candidate into the priority queue using heapq.heappush().
         """
@@ -274,7 +262,7 @@ class UrgentCandidateQueue:
         self._counter += 1
         heapq.heappush(self._heap, candidate)
 
-    def pop_candidate(self) -> Optional[PriorityCandidate]:
+    def pop_candidate(self):
         """
         Pops and returns the highest priority candidate using heapq.heappop().
         Handles empty queue gracefully without crashing.
@@ -291,7 +279,7 @@ class UrgentCandidateQueue:
 # 6. Comprehensions (List, Set, Dict)
 # ==============================================================================
 
-def filter_seekers_by_budget(seekers: List[ApartmentSeeker], min_budget: float) -> List[str]:
+def filter_seekers_by_budget(seekers: list, min_budget: float) -> list:
     """
     List comprehension for filtering and formatting:
     Filters seekers with at least min_budget and formats their name and budget.
@@ -299,7 +287,7 @@ def filter_seekers_by_budget(seekers: List[ApartmentSeeker], min_budget: float) 
     return [f"{s.name} ({s.max_budget:.0f} NIS)" for s in seekers if s.max_budget >= min_budget]
 
 
-def extract_unique_preferred_cities(seekers: List[ApartmentSeeker]) -> Set[str]:
+def extract_unique_preferred_cities(seekers: list) -> set:
     """
     Set comprehension for extracting unique values:
     Flattens preferred cities from all seekers into a set of unique city names.
@@ -307,7 +295,7 @@ def extract_unique_preferred_cities(seekers: List[ApartmentSeeker]) -> Set[str]:
     return {city for s in seekers for city in s.preferred_cities}
 
 
-def map_seeker_phones_to_budgets(seekers: List[ApartmentSeeker]) -> Dict[str, float]:
+def map_seeker_phones_to_budgets(seekers: list) -> dict:
     """
     Dict comprehension for creating an index/mapping:
     Maps each seeker's unique phone number to their maximum budget.
@@ -319,14 +307,14 @@ def map_seeker_phones_to_budgets(seekers: List[ApartmentSeeker]) -> Dict[str, fl
 # 7. Sorting and Functions as Values
 # ==============================================================================
 
-def get_seeker_budget(seeker: ApartmentSeeker) -> float:
+def get_seeker_budget(seeker) -> float:
     """
     Regular named function used as the 'key' argument in sorted().
     """
     return seeker.max_budget
 
 
-def sort_seekers_by_budget_descending(seekers: List[ApartmentSeeker]) -> List[ApartmentSeeker]:
+def sort_seekers_by_budget_descending(seekers: list) -> list:
     """
     Demonstrates sorted() using a regular named function as key.
     Sorts seekers by budget in descending order.
@@ -334,7 +322,7 @@ def sort_seekers_by_budget_descending(seekers: List[ApartmentSeeker]) -> List[Ap
     return sorted(seekers, key=get_seeker_budget, reverse=True)
 
 
-def sort_seekers_by_age(seekers: List[ApartmentSeeker]) -> List[ApartmentSeeker]:
+def sort_seekers_by_age(seekers: list) -> list:
     """
     Demonstrates sorted() using a concise lambda function as key.
     Sorts seekers by age in ascending order.
@@ -342,7 +330,7 @@ def sort_seekers_by_age(seekers: List[ApartmentSeeker]) -> List[ApartmentSeeker]
     return sorted(seekers, key=lambda s: s.age)
 
 
-def sort_apartments_by_city_and_rent(owners: List[RoommateSeeker]) -> List[RoommateSeeker]:
+def sort_apartments_by_city_and_rent(owners: list) -> list:
     """
     Demonstrates sorted() by TWO fields using a tuple:
     First by city alphabetically, then by monthly rent in ascending order.
@@ -500,7 +488,3 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("All Part C requirements verified and passed successfully!")
     print("=" * 60)
-
-
-
-
