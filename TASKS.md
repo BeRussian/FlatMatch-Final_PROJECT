@@ -74,24 +74,24 @@
 
 ---
 
-## 🔄 חלק ד' – Iterators, Generators ו-Lazy Evaluation – [TO DO]
-* [ ] **Iterable ו-Iterator מותאמים אישית (`iterators.py`)**:
-  * [ ] מחלקת אוסף שהיא Iterable (מממשת `__iter__`).
-  * [ ] מחלקת Iterator נפרדת השומרת את מצב המעבר (מממשת `__iter__`, `__next__` ו-`StopIteration`).
-  * [ ] הדגמת שני Iterators המתקדמים באופן עצמאי על אותו אוסף.
-* [ ] **Generator עם `yield` (`iterators.py`)**:
-  * [ ] פונקציית Generator המחזירה בהדרגה מועמדים העומדים בתנאי סף עסקי.
-  * [ ] הדגמת קריאה עם `next()` והמשך בלולאת `for`.
-* [ ] **צינור עיבוד עצל (Lazy Pipeline) (`iterators.py`)**:
-  * [ ] בניית Pipeline עצל בעל 3 שלבים באמצעות Generator Expressions (ללא רשימות ביניים).
-  * [ ] צריכה חלקית של שתי תוצאות ראשונות בלבד.
-* [ ] **עיבוד קובץ בהדרגה (`repository.py`)**:
-  * [ ] קובץ `data/sample_data.jsonl` עם לפחות 15 רשומות סינתטיות.
-  * [ ] קריאת הקובץ שורה אחר שורה בתוך `with open(..., encoding="utf-8")` ללא `read()` או `readlines()`.
-  * [ ] המרה באמצעות `json.loads` ואז לאובייקטים דרך `from_dict`.
-* [ ] **Context Manager מותאם אישית (`context_managers.py`)**:
-  * [ ] מימוש `__enter__` ו-`__exit__` עבור תהליך עסקי (למשל: סשן חיפוש, מדידת זמן או נעילת דירה).
-  * [ ] הוכחה שהיציאה מתבצעת תקין גם בעת זריקת חריגה (ללא הסתרת החריגה).
+## 🔄 חלק ד' – Iterators, Generators ו-Lazy Evaluation – ✅ בוצע
+* [x] **Iterable ו-Iterator מותאמים אישית (`iterators.py`)**:
+  * [x] מחלקת אוסף שהיא Iterable (מממשת `__iter__`).
+  * [x] מחלקת Iterator נפרדת השומרת את מצב המעבר (מממשת `__iter__`, `__next__` ו-`StopIteration`).
+  * [x] הדגמת שני Iterators המתקדמים באופן עצמאי על אותו אוסף.
+* [x] **Generator עם `yield` (`iterators.py`)**:
+  * [x] פונקציית Generator המחזירה בהדרגה מועמדים העומדים בתנאי סף עסקי.
+  * [x] הדגמת קריאה עם `next()` והמשך בלולאת `for`.
+* [x] **צינור עיבוד עצל (Lazy Pipeline) (`iterators.py`)**:
+  * [x] בניית Pipeline עצל בעל 3 שלבים באמצעות Generator Expressions (ללא רשימות ביניים).
+  * [x] צריכה חלקית של שתי תוצאות ראשונות בלבד.
+* [x] **עיבוד קובץ בהדרגה (`repository.py`)**:
+  * [x] קובץ `data/sample_data.jsonl` עם לפחות 15 רשומות סינתטיות.
+  * [x] קריאת הקובץ שורה אחר שורה בתוך `with open(..., encoding="utf-8")` ללא `read()` או `readlines()`.
+  * [x] המרה באמצעות `json.loads` ואז לאובייקטים דרך `from_dict`.
+* [x] **Context Manager מותאם אישית (`context_managers.py`)**:
+  * [x] מימוש `__enter__` ו-`__exit__` עבור תהליך עסקי (למשל: סשן חיפוש, מדידת זמן או נעילת דירה).
+  * [x] הוכחה שהיציאה מתבצעת תקין גם בעת זריקת חריגה (ללא הסתרת החריגה).
 
 ---
 
