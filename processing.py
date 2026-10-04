@@ -378,7 +378,7 @@ if __name__ == "__main__":
 
     mutation_res = demonstrate_set_mutation(available)
     print(f"Safe discard & remove demonstration successful (KeyError caught: {mutation_res['key_error_caught']})")
-    assert mutation_res["key_error_caught"] is True
+    assert mutation_res["key_error_caught"] == True
 
     # 3. Dictionaries (Lookup, Grouping, Counting)
     print("\n--- 3. Dictionaries (Lookup, Grouping, Counting) ---")
@@ -389,9 +389,9 @@ if __name__ == "__main__":
     # Safe retrieval with .get()
     found = find_user_by_id(directory, "050-1112233")
     not_found = find_user_by_id(directory, "000-0000000")
-    print(f"Found User with .get(): {found.name if found else 'None'}")
+    print(f"Found User with .get(): {found.name if found != None else 'None'}")
     print(f"Missing User with .get() (safe return): {not_found}")
-    assert found is not None and not_found is None
+    assert found != None and not_found == None
 
     # Duplicate key collision check
     duplicate_caught = False
@@ -400,7 +400,7 @@ if __name__ == "__main__":
     except ValueError as e:
         duplicate_caught = True
         print(f"Explicit duplicate prevention caught: {e}")
-    assert duplicate_caught is True
+    assert duplicate_caught == True
 
     # Grouping and counting
     grouped = group_seekers_by_city(seekers)
@@ -426,7 +426,7 @@ if __name__ == "__main__":
     print(f"Processed 2nd: {app2[0]} (Arrival: {app2[2]})")
     print(f"Processed 3rd: {app3[0]} (Arrival: {app3[2]})")
     print(f"Processing on empty queue returns safely: {empty_app}")
-    assert app1[0] == "Alice Cohen" and empty_app is None
+    assert app1[0] == "Alice Cohen" and empty_app == None
 
     # 5. Priority Queue with heapq
     print("\n--- 5. Priority Queue (heapq) ---")
@@ -453,7 +453,7 @@ if __name__ == "__main__":
     assert second_served.priority == 2 and second_served.seeker.name == "Ben Levi"
     assert third_served.priority == 2 and third_served.seeker.name == "Eitan Sharon"
     assert fourth_served.priority == 3 and fourth_served.seeker.name == "Dana Mizrahi"
-    assert empty_popped is None
+    assert empty_popped == None
 
     # 6. Comprehensions
     print("\n--- 6. Comprehensions (List, Set, Dict) ---")
