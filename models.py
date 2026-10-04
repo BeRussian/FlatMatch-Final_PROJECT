@@ -213,6 +213,24 @@ class Apartment:
             return False
         return amenity.strip() in self._amenities
 
+    @classmethod
+    def from_dict(cls, data: dict):
+        if not isinstance(data, dict):
+            raise TypeError("data must be a dict")
+        amenities_data = data.get("amenities")
+        if isinstance(amenities_data, (list, tuple)):
+            amenities_set = set(amenities_data)
+        elif isinstance(amenities_data, set):
+            amenities_set = amenities_data
+        else:
+            amenities_set = set()
+        return cls(
+            city=data["city"],
+            rent=data["rent"],
+            rooms=data.get("rooms", 1),
+            amenities=amenities_set
+        )
+
     def __str__(self) -> str:
         amenities_str = ", ".join(self._amenities) if len(self._amenities) > 0 else "None"
         return f"Apartment(city='{self._city}', rent={self._rent}, rooms={self._rooms}, avg_per_room={self.rent_per_room}, amenities=[{amenities_str}])"
@@ -430,6 +448,35 @@ class RoommateSeeker(User):
             return True
 
         return False
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        if not isinstance(data, dict):
+            raise TypeError("data must be a dict")
+
+        pref_data = data.get("preferences")
+        if isinstance(pref_data, dict):
+            pref_obj = Preferences(**pref_data)
+        elif isinstance(pref_data, Preferences):
+            pref_obj = pref_data
+        else:
+            pref_obj = None
+
+        apt_data = data.get("apartment")
+        if isinstance(apt_data, dict):
+            apt_obj = Apartment.from_dict(apt_data)
+        elif isinstance(apt_data, Apartment):
+            apt_obj = apt_data
+        else:
+            raise ValueError("apartment data must be provided as a dict or Apartment instance")
+
+        return cls(
+            name=data["name"],
+            age=data["age"],
+            phone=data["phone"],
+            apartment=apt_obj,
+            preferences_OBJ=pref_obj
+        )
 
 
 # ==============================================================================
