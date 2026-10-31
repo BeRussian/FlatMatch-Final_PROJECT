@@ -16,7 +16,7 @@
 
 | חלק | נושא | קבצים מרכזיים | ניקוד במחוון | סטטוס |
 | :--- | :--- | :--- | :--- | :--- |
-| **Part 0** | תשתית, תלויות, סודות ולוגים | `pyproject.toml`, `.env.example`, `flatmatch/config.py` | חובה | Pending |
+| **Part 0** | תשתית, תלויות, סודות ולוגים | `pyproject.toml`, `.env.example`, `flatmatch/config.py` | חובה | Completed |
 | **Part 1** | תכנון ההרחבה העסקית | `README.md` | 10 נק' | Pending |
 | **Part 2** | חיבור לשירות חיצוני, שגיאות ו-Retry | `flatmatch/models.py`, `flatmatch/api_client.py` | 20 נק' | Pending |
 | **Part 3** | תבניות תכנון והזרקת תלויות (DI) | `strategies.py`, `factories.py`, `observers.py`, `services.py` | 20 נק' | Pending |
@@ -35,12 +35,12 @@
 **מיקום:** `pyproject.toml`, `.gitignore`, `.env.example`, `flatmatch/config.py`, `data/sample_data.jsonl`
 
 ### 0.1 עדכון תלויות ב-`pyproject.toml`
-- [ ] הוסף `requests` תחת `dependencies`.
-- [ ] הוסף `pytest` תחת `dependencies` (או תחת `project.optional-dependencies`).
+- [x] הוסף `requests` תחת `dependencies`.
+- [x] הוסף `pytest` תחת `dependencies` (או תחת `project.optional-dependencies`).
 
 ### 0.2 קובצי סביבה ואבטחת סודות (`.gitignore` ו-`.env.example`)
-- [ ] ודא ש-`.gitignore` בשורש המאגר חוסם במפורש: `.env`, `.pytest_cache/`, ו-`__pycache__/`.
-- [ ] צור קובץ `.env.example` בשורש המאגר עם שמות משתנים וערכי דוגמה בלבד (ללא סודות אמיתיים):
+- [x] ודא ש-`.gitignore` בשורש המאגר חוסם במפורש: `.env`, `.pytest_cache/`, ו-`__pycache__/`.
+- [x] צור קובץ `.env.example` בשורש המאגר עם שמות משתנים וערכי דוגמה בלבד (ללא סודות אמיתיים):
 
 ```env
 FLATMATCH_API_BASE_URL=https://router.project-osrm.org/route/v1/driving
@@ -51,17 +51,17 @@ FLATMATCH_API_KEY=example_optional_key_do_not_use_real_secret
 ```
 
 ### 0.3 יצירת מודול הגדרות ולוגים (`flatmatch/config.py`)
-- [ ] טען משתני סביבה באמצעות `os.getenv` עם ערכי ברירת מחדל בטוחים (ותמיכה בטעינת `.env` אם קיים, ללא חשיפת סודות).
-- [ ] הגדר קבועים:
+- [x] טען משתני סביבה באמצעות `os.getenv` עם ערכי ברירת מחדל בטוחים (ותמיכה בטעינת `.env` אם קיים, ללא חשיפת סודות).
+- [x] הגדר קבועים:
   - `API_BASE_URL`
   - `API_TIMEOUT = 5`
   - `MAX_RETRIES = 3`
   - `RETRY_DELAY = 0.5`
   - `CITY_COORDINATES`: מילון קואורדינטות `(lon, lat)` עבור הערים הנתמכות (`Tel Aviv`, `Jerusalem`, `Haifa`, `Ramat Gan`, `Beer Sheva`, `Herzliya`).
-- [ ] הגדר פונקציה `get_logger(name: str) -> logging.Logger` המתעדת פעולות וכשלים בפורמט אחיד, **ללא חשיפת סודות (`API_KEY`) או מידע אישי רגיש**.
+- [x] הגדר פונקציה `get_logger(name: str) -> logging.Logger` המתעדת פעולות וכשלים בפורמט אחיד, **ללא חשיפת סודות (`API_KEY`) או מידע אישי רגיש**.
 
 ### 0.4 וידוא נתוני ההדגמה ב-`data/sample_data.jsonl`
-- [ ] ודא שכל 20 הרשומות ב-`data/sample_data.jsonl` הן סינתטיות לחלוטין (ללא מידע אישי אמיתי) ונטענות ללא שגיאות.
+- [x] ודא שכל 20 הרשומות ב-`data/sample_data.jsonl` הן סינתטיות לחלוטין (ללא מידע אישי אמיתי) ונטענות ללא שגיאות.
 
 ### 🔖 Git Commit – Part 0
 ```bash
