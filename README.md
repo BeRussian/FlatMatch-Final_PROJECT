@@ -261,3 +261,11 @@ Below is the verified Git log output demonstrating the modular branching strateg
 * c80cc82 feat(models): implement OOP hierarchy, Apartment, Seekers, and validations
 * f233aba Initial commit
 ```
+
+---
+
+## שלב 2
+
+### 1. מה נוסף בשלב 2? (ההרחבה העסקית והערך העסקי)
+- **ההרחבה העסקית (Commute Distance & Duration):** הרחבת תהליך סינון ודירוג הדירות של FlatMatch משלב 1. מעבר לתקציב, עיר והעדפות סגנון חיים (`Preferences`), המערכת מחשבת כעת את **מרחק הנסיעה וזמן ההגעה** מהדירה המוצעת על ידי ה-`RoommateSeeker` אל מרכז היעד המבוקש של ה-`ApartmentSeeker` באמצעות שירות ניתוב חיצוני.
+- **הערך העסקי:** מניעת התאמות שבהן הדירה עומדת בתקציב אך דורשת נסיעה יומית ארוכה מדי, שקלול זמן הנסיעה ישירות בציון ההתאמה (`Match Score`), סינון מועמדים שחורגים מסף זמן הנסיעה המקסימלי, ושיקוף מלא בדוח העסקי.
