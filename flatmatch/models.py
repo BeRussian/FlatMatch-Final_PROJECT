@@ -34,9 +34,11 @@ class Preferences:
 
         if type(kashrut_level) != str:
             raise ValueError("kashrut_level must be str")
-        if kashrut_level != "low" and kashrut_level != "medium" and kashrut_level != "high" and kashrut_level != "hiloni":
-            raise ValueError("kashrut_level must be [hiloni / low / medium / high]")
-        self._kashrut_level = kashrut_level
+        valid_kashrut = {"secular", "traditional", "religious", "ultra_orthodox", "hiloni", "low", "medium", "high"}
+        if kashrut_level not in valid_kashrut:
+            raise ValueError("kashrut_level must be [secular / traditional / religious / ultra_orthodox]")
+        legacy_map = {"hiloni": "secular", "low": "traditional", "medium": "traditional", "high": "religious"}
+        self._kashrut_level = legacy_map.get(kashrut_level, kashrut_level)
 
         if type(shabbat_observant) != bool:
             raise ValueError("shabbat_observant must be True/False")
@@ -92,9 +94,11 @@ class Preferences:
     def kashrut_level(self, value: str):
         if type(value) != str:
             raise ValueError("kashrut_level must be str")
-        if value != "low" and value != "medium" and value != "high" and value != "hiloni":
-            raise ValueError("kashrut_level must be [hiloni / low / medium / high]")
-        self._kashrut_level = value
+        valid_kashrut = {"secular", "traditional", "religious", "ultra_orthodox", "hiloni", "low", "medium", "high"}
+        if value not in valid_kashrut:
+            raise ValueError("kashrut_level must be [secular / traditional / religious / ultra_orthodox]")
+        legacy_map = {"hiloni": "secular", "low": "traditional", "medium": "traditional", "high": "religious"}
+        self._kashrut_level = legacy_map.get(value, value)
 
     @property
     def shabbat_observant(self):
@@ -131,11 +135,65 @@ class Preferences:
 
 
 class Apartment:
-    # רשימת ערים נתמכות באנגלית בלבד
+    # Comprehensive whitelist of all Israeli cities, local councils, towns, and settlements
     SUPPORTED_CITIES = {
-        "Tel Aviv", "Jerusalem", "Haifa", "Beer Sheva", "Ramat Gan",
-        "Givatayim", "Herzliya", "Rishon LeZion", "Petah Tikva", "Holon",
-        "Bat Yam", "Netanya", "Kfar Saba", "Ra'anana", "Ashdod", "Ashkelon", "Modi'in"
+        # Major Cities & Metropolitan Centers
+        "Tel Aviv", "Jerusalem", "Haifa", "Rishon LeZion", "Petah Tikva", "Petach Tikva",
+        "Ashdod", "Netanya", "Beer Sheva", "Be'er Sheva", "Bnei Brak", "Holon", "Ramat Gan",
+        "Ashkelon", "Rehovot", "Bat Yam", "Beit Shemesh", "Kfar Saba", "Herzliya", "Hadera",
+        "Modi'in", "Modiin", "Modi'in-Maccabim-Re'ut", "Nazareth", "Lod", "Ramla", "Ra'anana",
+        "Kiryat Ono", "Qiryat Ono", "Givatayim", "Hod HaSharon", "Rosh HaAyin", "Kiryat Ata",
+        "Kiryat Gat", "Afula", "Nahariya", "Eilat", "Akko", "Acre", "Karmiel", "Tiberias",
+        "Yavne", "Ness Ziona", "Nes Ziona", "Kiryat Motzkin", "Kiryat Bialik", "Kiryat Yam",
+        "Ramat HaSharon", "Dimona", "Or Yehuda", "Yehud-Monosson", "Yehud", "Monosson",
+        "Sakhnin", "Baqa al-Gharbiyye", "Tayibe", "Shefa-'Amr", "Tamra", "Tirat Carmel",
+        "Arad", "Migdal HaEmek", "Ma'ale Adumim", "Ariel", "Umm al-Fahm", "Qalansawe",
+        "Kfar Qasim", "Kafr Qasim", "Tira", "Netivot", "Sderot", "Safed", "Tzfat",
+        "Kiryat Shmona", "Ofakim", "Beitar Illit", "Modi'in Illit", "Rahat",
+
+        # Gush Dan, Central & Sharon Towns and Local Councils
+        "Givat Shmuel", "Kiryat Ekron", "Mevaseret Zion", "Shoham", "Pardes Hanna-Karkur",
+        "Gedera", "Zikhron Ya'akov", "Zichron Yaakov", "Gan Yavne", "Kadima-Zoran", "Kadima",
+        "Zoran", "Mazkeret Batya", "Tel Mond", "Even Yehuda", "Binyamina-Giv'at Ada",
+        "Binyamina", "Giv'at Ada", "Kochav Yair-Tzur Yigal", "Kochav Yair", "Tzur Yigal",
+        "Kfar Yona", "Caesarea", "Harish", "Savyon", "Kfar Shmaryahu", "Beit Dagan",
+        "Bnei Aish", "Ganei Tikva", "Kiryat Tiv'on", "Ramat Yishai", "Azur", "Jaljulia",
+        "Kafr Bara", "Elyakhin", "Be'er Ya'akov", "Beer Yaakov",
+
+        # Northern Localities, Galilee & Golan
+        "Rosh Pina", "Metula", "Katzrin", "Majd al-Krum", "Yafa an-Naseriyye", "Reineh",
+        "Iksal", "Tur'an", "Kabul", "Bir al-Maksur", "Beit Jann", "Daliyat al-Karmel",
+        "Isfiya", "Usfiya", "Hatzor HaGlilit", "Yesud HaMa'ala", "Migdal", "Kfar Vradim",
+        "Ma'alot-Tarshiha", "Ma'alot", "Tarshiha", "Shlomi", "Fassuta", "Hurfeish", "Peki'in",
+        "Kfar Kama", "Ein Mahil", "Bu'eine Nujeidat", "Basmat Tab'un", "Zarzir", "Deir Hanna",
+        "Arraba", "Eilabun", "Maghar", "Kaukab Abu al-Hija", "Sha'ab", "Abu Sinan", "Yirka",
+        "Julis", "Yanuh-Jat", "Kisra-Sumei", "Sajur", "Rameh", "Shibli-Umm al-Ghanam",
+        "Al-Batuf", "Kfar Tavor", "Yavne'el", "Poria", "Kinneret", "Merom Golan", "Ein Zivan",
+        "Hispin", "Bnei Yehuda", "Nov", "Afik", "Ramat Magshimim", "Odem", "El Rom",
+
+        # Judea, Samaria & Jerusalem Corridor Settlements
+        "Gush Etzion", "Efrat", "Beit El", "Givat Ze'ev", "Alfei Menashe", "Karnei Shomron",
+        "Kedumim", "Elkana", "Oranit", "Sha'arei Tikva", "Etz Efraim", "Beit Aryeh-Ofarim",
+        "Beit Aryeh", "Ofarim", "Har Adar", "Kiryat Arba", "Ma'ale Efraim", "Shilo", "Eli",
+        "Psagot", "Kokhav Ya'akov", "Ofra", "Tekoa", "Nokdim", "Kfar Adumim", "Mitzpe Yeriho",
+        "Almon", "Kalia", "Vered Yeriho", "Halamish", "Ateret", "Talmon", "Dolev", "Nili",
+        "Na'ale", "Hashmonaim", "Matityahu", "Barkan", "Revava", "Yakired", "Nofim",
+
+        # Southern Localities, Negev & Arava
+        "Yeruham", "Mitzpe Ramon", "Meitar", "Omer", "Lehavim", "Ar'ara BaNegev", "Kuseife",
+        "Tel Sheva", "Segev Shalom", "Hura", "Lakiya", "Kiryat Malakhi", "Beer Tuvia",
+        "Bnei Shimon", "Ramat Negev", "Eshkol", "Sha'ar HaNegev", "Sdot Negev", "Merhavim",
+        "Sapir", "Tzukim", "Paran", "Yahel", "Neot Smadar", "Ketura", "Lotan", "Elifaz",
+        "Samar", "Yotvata", "Be'er Ora", "Ein Gedi", "Metzar",
+
+        # Major Agricultural Communities, Kibbutzim & Moshavim
+        "Kfar Vitkin", "Mikhmoret", "Beit Yanai", "Shfayim", "Ga'ash", "Yakum", "Rishpon",
+        "Arsuf", "Bnei Zion", "Bazra", "Tzur Moshe", "Beit Yehoshua", "Udim", "Nordia",
+        "Nahalal", "Kfar Yehoshua", "Degania", "Ein Harod", "Beit Alfa", "Tirat Zvi",
+        "Kfar Blum", "Dan", "Dafna", "HaGoshrim", "Sasa", "Yehiam", "Kabri", "Gesher HaZiv",
+        "Regba", "Shavei Tzion", "Mizra", "Ein HaShofet", "Mishmar HaEmek", "Hazorea",
+        "Palmachim", "Kfar Chabad", "Ben Shemen", "Revadim", "Kfar Warburg", "Kfar Aza",
+        "Nahal Oz", "Be'eri", "Nirim", "Magen", "Yad Mordechai", "Zikim", "Carmel",
     }
 
     def __init__(self, city: str, rent: float, rooms: int = 1, amenities: set = None, address: str = ""):
@@ -168,7 +226,12 @@ class Apartment:
             return False
         clean = city.strip().lower()
         supported_lower = {c.lower() for c in Apartment.SUPPORTED_CITIES}
-        return clean in supported_lower
+        if clean in supported_lower:
+            return True
+        # Flexible alphanumeric matching (ignoring hyphens, apostrophes, spaces)
+        clean_norm = re.sub(r"[\s\-_']+", "", clean)
+        supported_norms = {re.sub(r"[\s\-_']+", "", c.lower()) for c in Apartment.SUPPORTED_CITIES}
+        return clean_norm in supported_norms
 
     @property
     def city(self) -> str:
