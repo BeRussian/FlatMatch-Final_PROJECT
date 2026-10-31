@@ -279,5 +279,9 @@ Below is the verified Git log output demonstrating the modular branching strateg
   - **ארבע חריגות מובחנות ב-`api_client.py`:** המערכת מגדירה 4 סוגי שגיאות ייעודיות: `APIConnectionError` (כשל תקשורת המבצע Retry עד 3 פעמים), `APIHTTPError` (שגיאת HTTP מ-`raise_for_status()`), `APIResponseFormatError` (קובץ JSON לא תקין), ו-`APIDataValidationError` (נתונים לא תקינים או חסרים במענה).
   - **מצב גיבוי מבוקר (Graceful Fallback) ב-`services.py`:** בעת תפיסת חריגת API מתועדת אזהרה בלוג, ונוצר אובייקט גיבוי בטוח: `CommuteMetrics(..., distance_km=0.0, duration_minutes=0.0, is_verified=False)` עם סטטוס `"FALLBACK_UNVERIFIED"`.
   - **מניעת אישור שגוי בתת-המערכת:** תת-המערכת `LeaseInspectionSubsystem` מזהה שהמידע אינו מאומת (`is_verified=False`) ומסמנת סטטוס `"PENDING_MANUAL_VERIFICATION"`. בכך מובטח שהמערכת אינה קורסת ואינה מאשרת חוזה דיור באופן שגוי.
+- **מקביליות וסנכרון (Concurrency Architecture):**
+  - **משימות עצמאיות ב-Async (`async_processing.py`):** איסוף ואימות נתונים במקביל עבור לפחות 3 דירות שונות (`APT-101`, `APT-102`, `APT-103`, `APT-104`). כל דירה נבדקת עצמאית ללא תלות באחרות בחפיפה מלאה (`asyncio.create_task` + `asyncio.gather`), מה שמקצר משמעותית את זמן הביצוע בהשוואה להרצה סדרתית, תוך הבטחת שמירה על סדר הקלט המקורי.
+  - **המשאב המשותף והגנת Lock (`threaded_processing.py`):** ניהול מלאי חדרים פנויים מוגבל בדירה מבוקשת (`SharedRoomInventory`). מספר Threads המייצגים מועמדים מתחרים על תפיסת החדר האחרון. שימוש ב-`threading.Lock` מונע Race Condition קריטי מסוג Check-Then-Act שעלול לגרום לרישום יתר (Overbooking), ומבטיח פעולה אטומית ללא קריאות רשת חוסמות בקטע הקריטי.
+
 
 

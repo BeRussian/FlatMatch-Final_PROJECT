@@ -17,7 +17,7 @@
 | חלק | נושא | קבצים מרכזיים | ניקוד במחוון | סטטוס |
 | :--- | :--- | :--- | :--- | :--- |
 | **Part 0** | תשתית, תלויות, סודות ולוגים | `pyproject.toml`, `.env.example`, `flatmatch/config.py` | חובה | Completed |
-| **Part 1** | תכנון ההרחבה העסקית | `README.md` | 10 נק' | Pending |
+| **Part 1** | תכנון ההרחבה העסקית | `README.md` | 10 נק' | Completed |
 | **Part 2** | חיבור לשירות חיצוני, שגיאות ו-Retry | `flatmatch/models.py`, `flatmatch/api_client.py` | 20 נק' | Pending |
 | **Part 3** | תבניות תכנון והזרקת תלויות (DI) | `strategies.py`, `factories.py`, `observers.py`, `services.py` | 20 נק' | Pending |
 | **Part 4** | מקביליות וסנכרון (Async + Threads/Lock) | `async_processing.py`, `threaded_processing.py` | 20 נק' | Pending |
@@ -86,7 +86,7 @@ git commit -m "chore(config): add stage 2 dependencies, env example, and logging
 - [x] **1.3 התנהגות המערכת בכשל שירות חיצוני או מידע לא תקין:**
   - `api_client.py` זורק חריגה ספציפית ומתעד בלוג לאחר מיצוי ניסיונות ה-Retry (בכשל תקשורת) או מיד (בשגיאת HTTP / JSON / מבנה נתונים).
   - `services.py` תופס את החריגה ועובר ל**מצב גיבוי מבוקר (Graceful Fallback)**: מחזיר `CommuteMetrics(..., distance_km=0.0, duration_minutes=0.0, is_verified=False)` ומסמן סטטוס `"FALLBACK_UNVERIFIED"` (ותת-המערכת מסמנת `"PENDING_MANUAL_VERIFICATION"`), כך שהמערכת לא קורסת ולא מאשרת חוזה שגוי.
-- [ ] **1.4 פעולות עצמאיות בחפיפה (Async) והמשאב המשותף (Threads + Lock):**
+- [x] **1.4 פעולות עצמאיות בחפיפה (Async) והמשאב המשותף (Threads + Lock):**
   - **פעולות עצמאיות (`async_processing.py`):** איסוף מקבילי של נתוני זמינות ואימות תחבורה עבור **לפחות 3 דירות שונות** במקביל (כל דירה נבדקת עצמאית ללא תלות באחרות).
   - **המשאב המשותף (`threaded_processing.py`):** תפיסת החדרים הפנויים האחרונים בדירה מבוקשת (`SharedRoomInventory` עם `available_rooms` מוגבל). מוגן באמצעות `threading.Lock` למניעת Race Condition של רישום יתר (Overbooking).
 
