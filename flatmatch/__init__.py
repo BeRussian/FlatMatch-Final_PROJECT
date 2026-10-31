@@ -57,6 +57,39 @@ from .context_managers import (
     SearchSessionContext,
     ApartmentHoldContext,
 )
+from .factories import (
+    UserFactory,
+    VALID_USER_TYPES,
+)
+from .strategies import (
+    MatchingStrategy,
+    BudgetFocusedStrategy,
+    CommuteAndLifestyleStrategy,
+)
+from .observers import (
+    MatchEventListener,
+    MatchStatisticsObserver,
+    ApplicantNotificationObserver,
+)
+from .services import (
+    FlatMatchService,
+    MatchEvaluationResult,
+)
+from .address_normalizer import (
+    AddressNormalizer,
+    normalize_address,
+)
+from .geocoding import (
+    Coordinates,
+    NominatimGeocodingClient,
+)
+from .api_client import (
+    CommuteAPIClient,
+    APIConnectionError,
+    APIHTTPError,
+    APIResponseFormatError,
+    APIDataValidationError,
+)
 
 __all__ = [
     "Preferences",
@@ -97,4 +130,23 @@ __all__ = [
     "build_lazy_seeker_pipeline",
     "SearchSessionContext",
     "ApartmentHoldContext",
+    "UserFactory",
+    "VALID_USER_TYPES",
+    "MatchingStrategy",
+    "BudgetFocusedStrategy",
+    "CommuteAndLifestyleStrategy",
+    "MatchEventListener",
+    "MatchStatisticsObserver",
+    "ApplicantNotificationObserver",
+    "FlatMatchService",
+    "MatchEvaluationResult",
+    "AddressNormalizer",
+    "normalize_address",
+    "Coordinates",
+    "NominatimGeocodingClient",
+    "CommuteAPIClient",
+    "APIConnectionError",
+    "APIHTTPError",
+    "APIResponseFormatError",
+    "APIDataValidationError",
 ]

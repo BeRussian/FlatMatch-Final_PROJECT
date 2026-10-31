@@ -66,3 +66,12 @@ def normalize_address(raw_text: str) -> str:
             replaced_tokens.append(token)
 
     return " ".join(replaced_tokens)
+
+
+class AddressNormalizer:
+    """Utility class encapsulating address normalization methods."""
+
+    @staticmethod
+    def normalize(raw_text: str) -> str:
+        return normalize_address(raw_text)
+

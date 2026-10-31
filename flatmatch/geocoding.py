@@ -14,6 +14,9 @@ from flatmatch.config import CITY_COORDINATES, get_logger
 
 logger = get_logger("geocoding")
 
+Coordinates = Tuple[float, float]
+
+
 
 class AddressNotFoundError(Exception):
     """Raised when an address string cannot be resolved to geographic coordinates."""
