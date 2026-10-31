@@ -110,10 +110,16 @@ class CommuteAPIClient:
                     ) from err
 
         # Check HTTP status code (Raise immediately, do not retry HTTP errors)
+        status_code = getattr(response, "status_code", 200)
+        if status_code >= 400:
+            logger.error(f"OSRM API returned HTTP error {status_code}")
+            raise APIHTTPError(
+                f"HTTP request failed with status {status_code}",
+                status_code=status_code,
+            )
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as http_err:
-            status_code = getattr(response, "status_code", None)
             logger.error(f"OSRM API returned HTTP error {status_code}: {http_err}")
             raise APIHTTPError(
                 f"HTTP request failed with status {status_code}: {http_err}",

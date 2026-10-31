@@ -265,7 +265,17 @@ class Apartment:
 
 
 class User(ABC):
-    def __init__(self, name: str, age: int, phone: str, preferences_OBJ: Preferences = None):
+    def __init__(
+        self,
+        name: str,
+        age: int,
+        phone: str,
+        preferences_OBJ: Preferences = None,
+        preferences: Preferences = None,
+    ):
+        if preferences is not None and preferences_OBJ is None:
+            preferences_OBJ = preferences
+
         if type(name) != str or not name.strip():
             raise ValueError("name must be a non-empty str")
         self._name = name.strip()
@@ -389,7 +399,11 @@ class ApartmentSeeker(User):
         max_commute_minutes: float = 45.0,
         preferences_OBJ: Preferences = None,
         preferred_cities: list = None,
+        preferences: Preferences = None,
     ):
+        if preferences is not None and preferences_OBJ is None:
+            preferences_OBJ = preferences
+
         # Handle backward compatibility if positional arguments were passed in legacy order:
         # Legacy: (name, age, phone, max_budget, preferred_cities, preferences_OBJ)
         if isinstance(destination_address, (list, tuple)):
@@ -544,8 +558,11 @@ class RoommateSeeker(User):
         age: int,
         phone: str,
         apartment: Apartment,
-        preferences_OBJ: Preferences = None
+        preferences_OBJ: Preferences = None,
+        preferences: Preferences = None,
     ):
+        if preferences is not None and preferences_OBJ is None:
+            preferences_OBJ = preferences
         super().__init__(name=name, age=age, phone=phone, preferences_OBJ=preferences_OBJ)
 
         if not isinstance(apartment, Apartment):
