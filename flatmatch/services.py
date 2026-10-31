@@ -197,3 +197,12 @@ class FlatMatchService:
                 observer.on_match_evaluated(payload)
             except Exception as obs_err:
                 logger.error(f"Observer {type(observer).__name__} failed: {obs_err}")
+
+
+def calculate_commute_adjusted_budget(base_budget: float, commute: CommuteMetrics) -> float:
+    """
+    TDD Feature: Adjusts seeker's maximum budget ceiling based on daily commute duration.
+    (Stub raising NotImplementedError for TDD RED phase).
+    """
+    raise NotImplementedError("TDD RED: calculate_commute_adjusted_budget not yet implemented")
+

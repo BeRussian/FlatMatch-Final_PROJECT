@@ -74,6 +74,7 @@ from .observers import (
 from .services import (
     FlatMatchService,
     MatchEvaluationResult,
+    calculate_commute_adjusted_budget,
 )
 from .address_normalizer import (
     AddressNormalizer,
@@ -155,6 +156,8 @@ __all__ = [
     "ApplicantNotificationObserver",
     "FlatMatchService",
     "MatchEvaluationResult",
+    "calculate_commute_adjusted_budget",
+
     "AddressNormalizer",
     "normalize_address",
     "Coordinates",
