@@ -14,7 +14,7 @@ import os
 import sys
 from typing import List, Tuple, Dict, Any
 
-# Ensure UTF-8 I/O encoding across Windows consoles to seamlessly handle Hebrew and English
+# Ensure UTF-8 I/O encoding across Windows consoles to seamlessly handle any characters
 if sys.platform.startswith("win"):
     try:
         if hasattr(sys.stdout, "reconfigure"):
@@ -40,6 +40,21 @@ from flatmatch import (
     APIDataValidationError,
 )
 
+PRESET_DESTINATIONS = [
+    "Ono Academic College (Kiryat Ono)",
+    "Tel Aviv University - TAU (Tel Aviv)",
+    "Bar-Ilan University - BIU (Ramat Gan)",
+    "Reichman University (Herzliya)",
+    "Technion - Institute of Technology (Haifa)",
+    "Hebrew University of Jerusalem (Jerusalem)",
+    "Ben-Gurion University (Beer Sheva)",
+    "Azrieli Business Towers (Tel Aviv)",
+    "Bursa High-Tech District (Ramat Gan)",
+    "Herzliya Pituach Business Park (Herzliya)",
+    "Tel Aviv City Center (Tel Aviv)",
+    "Jerusalem City Center (Jerusalem)",
+]
+
 
 def get_input(prompt: str, default: str = "") -> str:
     """Helper to get user input with an optional default value."""
@@ -59,7 +74,7 @@ def get_int_input(prompt: str, default: int, min_val: int, max_val: int) -> int:
                 return val
             print(f"  [!] Please enter a whole number between {min_val} and {max_val}.")
         except ValueError:
-            print(f"  [!] Invalid input. Expected an integer number.")
+            print("  [!] Invalid input. Expected an integer number.")
 
 
 def get_float_input(prompt: str, default: float, min_val: float) -> float:
@@ -72,7 +87,7 @@ def get_float_input(prompt: str, default: float, min_val: float) -> float:
                 return val
             print(f"  [!] Please enter a number greater than or equal to {min_val}.")
         except ValueError:
-            print(f"  [!] Invalid input. Expected a valid number.")
+            print("  [!] Invalid input. Expected a valid number.")
 
 
 def get_bool_input(prompt: str, default: bool) -> bool:
@@ -87,6 +102,70 @@ def get_bool_input(prompt: str, default: bool) -> bool:
         if raw in ("n", "no", "false", "0"):
             return False
         print("  [!] Please answer 'y' for Yes or 'n' for No.")
+
+
+def get_destination_input() -> str:
+    """
+    Seamless hybrid destination selection.
+    User can enter a preset number (1-12) or directly type any custom address/city.
+    """
+    print("\nSelect your workplace, campus, or study destination:")
+    for idx, preset in enumerate(PRESET_DESTINATIONS, start=1):
+        print(f"  [{idx:2d}] {preset}")
+    print("  Or type any custom street address or city (e.g. Rothschild 10, Tel Aviv)")
+
+    default_dest = "1"
+    raw = input(f"\nEnter preset number [1-{len(PRESET_DESTINATIONS)}] OR custom address [{PRESET_DESTINATIONS[0]}]: ").strip()
+    if not raw:
+        return PRESET_DESTINATIONS[0]
+
+    # Check if user entered a valid preset number
+    if raw.isdigit():
+        choice_idx = int(raw)
+        if 1 <= choice_idx <= len(PRESET_DESTINATIONS):
+            chosen = PRESET_DESTINATIONS[choice_idx - 1]
+            print(f"  -> Selected preset: {chosen}")
+            return chosen
+
+    # Otherwise, treat raw text directly as custom destination
+    print(f"  -> Custom destination entered: '{raw}'")
+    return raw
+
+
+def get_kashrut_input() -> str:
+    """Prompt for kashrut category with numbered presets or direct names."""
+    print("\nSelect your Kashrut preference:")
+    print("  [1] secular       (חילוני)")
+    print("  [2] traditional   (מסורתי)")
+    print("  [3] religious     (דתי)")
+    print("  [4] ultra_orthodox (חרדי)")
+
+    mapping = {
+        "1": "secular",
+        "2": "traditional",
+        "3": "religious",
+        "4": "ultra_orthodox",
+        "secular": "secular",
+        "traditional": "traditional",
+        "religious": "religious",
+        "ultra_orthodox": "ultra_orthodox",
+    }
+    raw = input("Enter choice [1-4, default: 1 (secular)]: ").strip().lower()
+    return mapping.get(raw, "secular")
+
+
+def get_sleep_schedule_input() -> str:
+    """Prompt for sleep schedule with numbered presets or direct names."""
+    mapping = {
+        "1": "morning_person",
+        "2": "night_owl",
+        "3": "flexible",
+        "morning_person": "morning_person",
+        "night_owl": "night_owl",
+        "flexible": "flexible",
+    }
+    raw = input("Sleep schedule: [1] morning_person, [2] night_owl, [3] flexible [default: 1]: ").strip().lower()
+    return mapping.get(raw, "morning_person")
 
 
 def run_interactive_session():
@@ -114,34 +193,20 @@ def run_interactive_session():
     # --------------------------------------------------------------------------
     # Step 2: Workplace / Study Destination & Max Commute
     # --------------------------------------------------------------------------
-    print("\n[STEP 2: WORKPLACE / UNIVERSITY & COMMUTE GOAL]")
-    print("Tip: You can enter Israeli landmarks/slang (e.g. Ono, TAU, אונו, עזריאלי, הטכניון)")
-    print("     or a specific street address (e.g. Rothschild 10, Tel Aviv).")
-
-    destination = ""
-    while not destination:
-        destination = get_input("Enter your workplace or study destination", default="הקריה האקדמית אונו")
-        if not destination:
-            print("  [!] Destination cannot be blank.")
-
-    max_commute = get_float_input("Enter your maximum acceptable commute time (minutes)", default=30.0, min_val=5.0)
+    print("\n[STEP 2: DESTINATION & COMMUTE GOAL]")
+    destination = get_destination_input()
+    max_commute = get_float_input("Enter your maximum acceptable commute time (minutes)", default=35.0, min_val=5.0)
 
     # --------------------------------------------------------------------------
-    # Step 3: Lifestyle & Dealbreaker Preferences
+    # Step 3: Lifestyle & Compatibility Preferences
     # --------------------------------------------------------------------------
     print("\n[STEP 3: LIFESTYLE & COMPATIBILITY PREFERENCES]")
     print("Press [Enter] to accept the recommended default values:")
-    is_smoker = get_bool_input("Do you smoke (or allow smoking in apartment)?", default=False)
+    is_smoker = get_bool_input("Do you smoke (or allow smoking in the apartment)?", default=False)
     allows_pets = get_bool_input("Do you have (or love living with) pets?", default=True)
     cleanliness = get_int_input("Cleanliness standard (1=relaxed, 5=spotless)", default=4, min_val=1, max_val=5)
-    sleep_sched = get_input("Sleep schedule (morning_person / night_owl / flexible)", default="morning_person")
-    if sleep_sched not in ("morning_person", "night_owl", "flexible"):
-        sleep_sched = "flexible"
-
-    kashrut_level = get_input("Kashrut preference (hiloni / low / medium / high)", default="hiloni")
-    if kashrut_level not in ("hiloni", "low", "medium", "high"):
-        kashrut_level = "hiloni"
-
+    sleep_sched = get_sleep_schedule_input()
+    kashrut_level = get_kashrut_input()
     shabbat = get_bool_input("Do you keep Shabbat?", default=False)
 
     # Create Seeker Instance
@@ -168,6 +233,7 @@ def run_interactive_session():
     print(f"  Seeker: {seeker.name} (Age: {seeker.age}, Phone: {seeker.phone})")
     print(f"  Target: '{seeker.destination_address}' (Max Commute: {seeker.max_commute_minutes:.0f} min)")
     print(f"  Budget Cap: {seeker.max_budget:,.0f} NIS | Pets: {seeker_prefs.allows_pets} | Smoking: {seeker_prefs.is_smoker}")
+    print(f"  Kashrut: {seeker_prefs.kashrut_level} | Shabbat: {seeker_prefs.shabbat_observant} | Cleanliness: {seeker_prefs.cleanliness}/5")
     print("=" * 80)
 
     # --------------------------------------------------------------------------
@@ -228,7 +294,7 @@ def run_interactive_session():
                 origin_address=apt_address,
                 dest_address=normalized_dest,
             )
-        except Exception as err:
+        except Exception:
             commute = None
 
         if commute and commute.duration_minutes > seeker.max_commute_minutes:
@@ -281,7 +347,7 @@ def run_interactive_session():
             print(f"   Total Flat Rent:  {match['total_rent']:,.0f} NIS for {match['rooms']} rooms")
             print(f"   Commute Time:     {match['duration_minutes']:.1f} minutes ({match['distance_km']:.1f} km drive) [Verified: {match['is_verified']}]")
             print(f"   Apartment Perks:  {', '.join(match['amenities']) if match['amenities'] else 'Standard amenities'}")
-            print(f"   Host Lifestyle:   Cleanliness {owner.preferences.cleanliness}/5, Pets: {owner.preferences.allows_pets}, Smoking: {owner.preferences.is_smoker}")
+            print(f"   Host Lifestyle:   Cleanliness {owner.preferences.cleanliness}/5, Pets: {owner.preferences.allows_pets}, Smoking: {owner.preferences.is_smoker}, Kashrut: {owner.preferences.kashrut_level}")
             print("   " + "-" * 74)
     else:
         print("\nNo apartments currently match all your criteria (budget, lifestyle, and commute threshold).")
