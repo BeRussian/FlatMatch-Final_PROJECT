@@ -18,15 +18,15 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Part 0** | תשתית, תלויות, סודות ולוגים | `pyproject.toml`, `.env.example`, `flatmatch/config.py` | חובה | Completed |
 | **Part 1** | תכנון ההרחבה העסקית | `README.md` | 10 נק' | Completed |
-| **Part 2** | חיבור לשירות חיצוני, שגיאות ו-Retry | `flatmatch/models.py`, `flatmatch/api_client.py` | 20 נק' | Pending |
-| **Part 3** | תבניות תכנון והזרקת תלויות (DI) | `strategies.py`, `factories.py`, `observers.py`, `services.py` | 20 נק' | Pending |
-| **Part 4** | מקביליות וסנכרון (Async + Threads/Lock) | `async_processing.py`, `threaded_processing.py` | 20 נק' | Pending |
-| **Part 5** | אינטגרציית תת-מערכת ודוח עסקי משולב | `flatmatch/reports.py`, `flatmatch/services.py` | משולב | Pending |
-| **Part 6** | פיתוח יכולת ב-TDD (Red -> Green -> Refactor) | `tests/test_tdd_feature.py`, `flatmatch/services.py` | 25 נק' (עם 7) | Pending |
-| **Part 7** | חבילת בדיקות אוטומטיות מלאה (20+ מקרים) | `tests/test_*.py` | 25 נק' | Pending |
-| **Part 8** | תסריט הדגמה מרכזי (Offline + Live API) | `main.py` | חובה | Pending |
-| **Part 9** | תיעוד סופי (`README.md` + `AI_USAGE.md`) | `README.md`, `AI_USAGE.md` | 5 נק' | Pending |
-| **Part 10** | בדיקת שער סופית לפני הגשה | כל המאגר | 100 נק' | Pending |
+| **Part 2** | חיבור לשירות חיצוני, שגיאות ו-Retry | `flatmatch/models.py`, `flatmatch/api_client.py` | 20 נק' | Completed |
+| **Part 3** | תבניות תכנון והזרקת תלויות (DI) | `strategies.py`, `factories.py`, `observers.py`, `services.py` | 20 נק' | Completed |
+| **Part 4** | מקביליות וסנכרון (Async + Threads/Lock) | `async_processing.py`, `threaded_processing.py` | 20 נק' | Completed |
+| **Part 5** | אינטגרציית תת-מערכת ודוח עסקי משולב | `flatmatch/reports.py`, `flatmatch/services.py` | משולב | Completed |
+| **Part 6** | פיתוח יכולת ב-TDD (Red -> Green -> Refactor) | `tests/test_tdd_feature.py`, `flatmatch/services.py` | 25 נק' (עם 7) | Completed |
+| **Part 7** | חבילת בדיקות אוטומטיות מלאה (20+ מקרים) | `tests/test_*.py` | 25 נק' | Completed |
+| **Part 8** | תסריט הדגמה מרכזי (Offline + Live API) | `main.py` | חובה | Completed |
+| **Part 9** | תיעוד סופי (`README.md` + `AI_USAGE.md`) | `README.md`, `AI_USAGE.md` | 5 נק' | Completed |
+| **Part 10** | בדיקת שער סופית לפני הגשה | כל המאגר | 100 נק' | Completed |
 
 ---
 
@@ -97,19 +97,19 @@ git commit -m "chore(config): add stage 2 dependencies, env example, and logging
 **מיקום:** `flatmatch/models.py`, `flatmatch/api_client.py`
 
 ### 2.1 מודל נתונים לתשובת ה-API (`flatmatch/models.py`)
-- [ ] הוסף מחלקה `CommuteMetrics` ב-`flatmatch/models.py`:
+- [x] הוסף מחלקה `CommuteMetrics` ב-`flatmatch/models.py`:
   - שדות: `origin_city: str`, `destination_city: str`, `distance_km: float`, `duration_minutes: float`, `is_verified: bool = True`.
   - הוסף ולידציה שמוודאת ש-`distance_km >= 0` ו-`duration_minutes >= 0` (זורקת `ValueError` אם שלילי).
 
 ### 2.2 הגדרת 4 חריגות מובחנות ב-`flatmatch/api_client.py` (סעיף 2.2)
-- [ ] הגדר 4 מחלקות חריגה ברורות להבחנה בין סוגי הכשלים:
+- [x] הגדר 4 מחלקות חריגה ברורות להבחנה בין סוגי הכשלים:
   1. `APIConnectionError(Exception)` – כשל תקשורת (`Timeout` או `ConnectionError`) לאחר מיצוי ניסיונות ה-Retry.
   2. `APIHTTPError(Exception)` – שגיאת HTTP מ-`response.raise_for_status()` (`HTTPError`, כולל שמירת `status_code` אם קיים, כגון 401, 404, 429, 503).
   3. `APIResponseFormatError(Exception)` – JSON שאינו ניתן לפענוח (`ValueError` / `json.JSONDecodeError`).
   4. `APIDataValidationError(Exception)` – נתונים שאינם תואמים למבנה הנדרש (חסר `routes`, רשימה ריקה, חסרים `distance` או `duration`, או ערכים לא חוקיים).
 
 ### 2.3 מימוש `CommuteAPIClient` ב-`flatmatch/api_client.py` (סעיפים 2.1, 2.2)
-- [ ] ממש בנאי המקבל תלויות מבחוץ (עבור בדיקות קלות ללא רשת וללא המתנה):
+- [x] ממש בנאי המקבל תלויות מבחוץ (עבור בדיקות קלות ללא רשת וללא המתנה):
 
 ```python
 def __init__(
@@ -123,18 +123,18 @@ def __init__(
 ) -> None:
 ```
 
-- [ ] ממש מתודה `fetch_commute_metrics(self, origin_coords: tuple[float, float], dest_coords: tuple[float, float], origin_city: str = "", dest_city: str = "") -> CommuteMetrics`:
-  - [ ] שליחת בקשת `GET` עם `params={"overview": "false"}` ו-`timeout=self.timeout`.
-  - [ ] **מנגנון Retry ממוקד:**
+- [x] ממש מתודה `fetch_commute_metrics(self, origin_coords: tuple[float, float], dest_coords: tuple[float, float], origin_city: str = "", dest_city: str = "") -> CommuteMetrics`:
+  - [x] שליחת בקשת `GET` עם `params={"overview": "false"}` ו-`timeout=self.timeout`.
+  - [x] **מנגנון Retry ממוקד:**
     - עד `max_retries` (ברירת מחדל: **3 ניסיונות בסך הכול**).
     - מתבצע **אך ורק** על `requests.exceptions.Timeout` או `requests.exceptions.ConnectionError`.
     - בין ניסיונות: תיעוד ב-`logger.warning` והמתנה באמצעות `self.sleep_func(self.retry_delay)`.
     - לאחר הכישלון בניסיון ה-3: תיעוד ב-`logger.error` וזריקת `APIConnectionError` ברורה.
-  - [ ] **בדיקת קוד התגובה:** קריאה ל-`response.raise_for_status()`. אם נזרקת `HTTPError`, תיעוד בלוג וזריקת `APIHTTPError` מיד **ללא Retry**.
-  - [ ] **פענוח JSON:** קריאה ל-`response.json()`. בכשל פענוח, תיעוד וזריקת `APIResponseFormatError` מיד **ללא Retry**.
-  - [ ] **אימות שדות ומבנה:** בדיקה ש-`routes` הוא `list` לא ריק, ושבתוך `routes[0]` קיימים `distance` ו-`duration` כמספרים אי-שליליים. אם לא, זריקת `APIDataValidationError` מיד **ללא Retry**.
-  - [ ] **המרה לאובייקט מערכת:** חישוב `distance_km = round(distance / 1000.0, 2)` ו-`duration_minutes = round(duration / 60.0, 2)` והחזרת `CommuteMetrics(..., is_verified=True)`.
-  - [ ] **הפרדת אחריויות:** ודא שאין ב-`api_client.py` שום לוגיקה עסקית של סינון או דירוג מועמדים.
+  - [x] **בדיקת קוד התגובה:** קריאה ל-`response.raise_for_status()`. אם נזרקת `HTTPError`, תיעוד בלוג וזריקת `APIHTTPError` מיד **ללא Retry**.
+  - [x] **פענוח JSON:** קריאה ל-`response.json()`. בכשל פענוח, תיעוד וזריקת `APIResponseFormatError` מיד **ללא Retry**.
+  - [x] **אימות שדות ומבנה:** בדיקה ש-`routes` הוא `list` לא ריק, ושבתוך `routes[0]` קיימים `distance` ו-`duration` כמספרים אי-שליליים. אם לא, זריקת `APIDataValidationError` מיד **ללא Retry**.
+  - [x] **המרה לאובייקט מערכת:** חישוב `distance_km = round(distance / 1000.0, 2)` ו-`duration_minutes = round(duration / 60.0, 2)` והחזרת `CommuteMetrics(..., is_verified=True)`.
+  - [x] **הפרדת אחריויות:** ודא שאין ב-`api_client.py` שום לוגיקה עסקית של סינון או דירוג מועמדים.
 
 ### 🔖 Git Commit – Part 2
 ```bash
@@ -149,31 +149,31 @@ git commit -m "feat(api): implement CommuteAPIClient with retry logic, validatio
 **מיקום:** `flatmatch/strategies.py`, `flatmatch/factories.py`, `flatmatch/observers.py`, `flatmatch/services.py`
 
 ### 3.1 תבנית Strategy (`flatmatch/strategies.py`)
-- [ ] הגדר מחלקת בסיס אבסטרקטית `MatchingStrategy(ABC)` עם מתודה אבסטרקטית:
+- [x] הגדר מחלקת בסיס אבסטרקטית `MatchingStrategy(ABC)` עם מתודה אבסטרקטית:
   `calculate_score(self, seeker: ApartmentSeeker, owner: RoommateSeeker, commute: CommuteMetrics | None = None) -> float`
-- [ ] ממש חלופה 1: `BudgetFocusedStrategy(MatchingStrategy)`
+- [x] ממש חלופה 1: `BudgetFocusedStrategy(MatchingStrategy)`
   - מתעדפת חיסכון בתקציב (`seeker.max_budget - owner.apartment.rent_per_room`) והתאמת ניקיון, עם משקל נמוך לזמן הנסיעה.
-- [ ] ממש חלופה 2: `CommuteAndLifestyleStrategy(MatchingStrategy)`
+- [x] ממש חלופה 2: `CommuteAndLifestyleStrategy(MatchingStrategy)`
   - מתעדפת זמן נסיעה קצר מ-`CommuteMetrics` (בונוס על נסיעה קצרה מאומתת `is_verified=True` וקנס משמעותי על נסיעה ארוכה) וכן חפיפת `amenities`.
 
 ### 3.2 תבנית Factory (`flatmatch/factories.py`)
-- [ ] ממש מחלקה `UserFactory` עם מתודה `create_user(data: dict) -> User`:
+- [x] ממש מחלקה `UserFactory` עם מתודה `create_user(data: dict) -> User`:
   - שימוש ב-`if/elif` לפי `data.get("type")`:
     - עבור `"apartment_seeker"` -> מחזיר `ApartmentSeeker.from_dict(data)`
     - עבור `"roommate_seeker"` -> מחזיר `RoommateSeeker.from_dict(data)`
     - עבור כל ערך אחר או חסר -> זורק `ValueError` ברור.
-- [ ] עדכן את `flatmatch/repository.py` כך שישתמש ב-`UserFactory.create_user(record)` במקום בדיקות סוג ישירות.
+- [x] עדכן את `flatmatch/repository.py` כך שישתמש ב-`UserFactory.create_user(record)` במקום בדיקות סוג ישירות.
 
 ### 3.3 תבנית Observer (`flatmatch/observers.py`)
-- [ ] הגדר ממשק אבסטרקטי `MatchEventListener(ABC)` עם מתודה `on_match_evaluated(self, event_data: dict) -> None`.
-- [ ] ממש מגיב 1: `MatchStatisticsObserver(MatchEventListener)`
+- [x] הגדר ממשק אבסטרקטי `MatchEventListener(ABC)` עם מתודה `on_match_evaluated(self, event_data: dict) -> None`.
+- [x] ממש מגיב 1: `MatchStatisticsObserver(MatchEventListener)`
   - שומר ומעדכן מונים: `total_evaluated`, `verified_commutes`, `api_fallbacks`, ו-`approved_by_city: dict[str, int]`.
-- [ ] ממש מגיב 2: `ApplicantNotificationObserver(MatchEventListener)`
+- [x] ממש מגיב 2: `ApplicantNotificationObserver(MatchEventListener)`
   - שומר רשימת הודעות `notifications: list[str]` ומתעד בלוג כאשר נמצאת התאמה או כאשר נדרשת בדיקה ידנית עקב כשל ב-API.
 
 ### 3.4 חיבור הרכיבים והזרקת תלויות ב-`flatmatch/services.py`
-- [ ] ממש מחלקה/מבנה תוצאה `MatchEvaluationResult` (שדות: `seeker_phone`, `owner_phone`, `city`, `rent_per_room`, `score`, `commute_metrics`, `status`, `is_approved`).
-- [ ] ממש את `FlatMatchService` עם **הזרקת תלויות דרך הבנאי (`__init__`)**:
+- [x] ממש מחלקה/מבנה תוצאה `MatchEvaluationResult` (שדות: `seeker_phone`, `owner_phone`, `city`, `rent_per_room`, `score`, `commute_metrics`, `status`, `is_approved`).
+- [x] ממש את `FlatMatchService` עם **הזרקת תלויות דרך הבנאי (`__init__`)**:
 
 ```python
 def __init__(
@@ -185,7 +185,7 @@ def __init__(
 ) -> None:
 ```
 
-- [ ] ממש מתודה `evaluate_candidate_match(self, seeker: ApartmentSeeker, owner: RoommateSeeker) -> MatchEvaluationResult`:
+- [x] ממש מתודה `evaluate_candidate_match(self, seeker: ApartmentSeeker, owner: RoommateSeeker) -> MatchEvaluationResult`:
   1. בודקת Dealbreakers בסיסיים (`seeker.evaluate_dealbreakers(owner)`).
   2. קוראת ל-`self.api_client.fetch_commute_metrics(...)` לפי קואורדינטות עיר הדירה ועיר היעד המועדפת של המחפש.
   3. **טיפול בכשל שירות חיצוני:** תופסת `(APIConnectionError, APIHTTPError, APIResponseFormatError, APIDataValidationError)`, רושמת לוג אזהרה, ויוצרת אובייקט גיבוי `CommuteMetrics(..., distance_km=0.0, duration_minutes=0.0, is_verified=False)` עם סטטוס `"FALLBACK_UNVERIFIED"`.
@@ -208,27 +208,27 @@ git commit -m "feat(patterns,services): add Strategy, Factory, Observer patterns
 **מיקום:** `flatmatch/async_processing.py`, `flatmatch/threaded_processing.py`
 
 ### 4.1 איסוף מידע אסינכרוני (`flatmatch/async_processing.py` – סעיף 5.1)
-- [ ] הגדר נתוני סימולציה קבועים עבור לפחות **3 משימות עצמאיות** (למשל 4 דירות: `["APT-101", "APT-102", "APT-103", "APT-104"]`), כאשר זמני ההמתנה (`delay`) שונים זה מזה (למשל `0.05s`, `0.01s`, `0.03s`, `0.02s`) כך שסדר הסיום הטבעי במקביל שונה מסדר הקלט.
-- [ ] ממש פונקציה אסינכרונית למשימה בודדת:
+- [x] הגדר נתוני סימולציה קבועים עבור לפחות **3 משימות עצמאיות** (למשל 4 דירות: `["APT-101", "APT-102", "APT-103", "APT-104"]`), כאשר זמני ההמתנה (`delay`) שונים זה מזה (למשל `0.05s`, `0.01s`, `0.03s`, `0.02s`) כך שסדר הסיום הטבעי במקביל שונה מסדר הקלט.
+- [x] ממש פונקציה אסינכרונית למשימה בודדת:
   `async def fetch_apartment_verification_async(apt_id: str, simulated_db: dict | None = None) -> dict`
   - משתמשת אך ורק ב-`await asyncio.sleep(delay)` ומחזירה מילון נתונים עבור `apt_id`.
   - **אסור להשתמש ב-`time.sleep` או בקריאות HTTP חוסמות!**
-- [ ] ממש שתי גרסאות על אותן משימות ואותם נתוני בדיקה:
+- [x] ממש שתי גרסאות על אותן משימות ואותם נתוני בדיקה:
   1. **גרסה סדרתית:** `async def collect_verifications_sequential(apt_ids: list[str], simulated_db: dict | None = None) -> list[dict]`
      - ממתינה (`await`) לסיום כל משימה לפני תחילת המשימה הבאה.
   2. **גרסה אסינכרונית מקבילית:** `async def collect_verifications_concurrent(apt_ids: list[str], simulated_db: dict | None = None) -> list[dict]`
      - מתזמנת את כל המשימות מראש באמצעות `asyncio.create_task` ואוספת את התוצאות באמצעות `await asyncio.gather(*tasks)`.
-- [ ] ודא ששתי הפונקציות מחזירות תוצאות **זהות לחלוטין** ולפי **סדר הקלט המקורי** (`apt_ids`).
+- [x] ודא ששתי הפונקציות מחזירות תוצאות **זהות לחלוטין** ולפי **סדר הקלט המקורי** (`apt_ids`).
 
 ### 4.2 Threads ומשאב משותף (`flatmatch/threaded_processing.py` – סעיף 5.2)
-- [ ] ממש מחלקה `SharedRoomInventory`:
+- [x] ממש מחלקה `SharedRoomInventory`:
   - שדות: `apartment_id: str`, `available_rooms: int`, `approved_seekers: list[str]`, ומופע `self._lock = threading.Lock()`.
-- [ ] ממש מתודה `attempt_room_booking(self, seeker_name: str) -> bool`:
+- [x] ממש מתודה `attempt_room_booking(self, seeker_name: str) -> bool`:
   - משתמשת ב-`with self._lock:` כדי להגן על רצף הבדיקה והעדכון (Check-Then-Act):
     - אם `self.available_rooms > 0`: מפחיתה `self.available_rooms -= 1`, מוסיפה את `seeker_name` ל-`self.approved_seekers`, ומחזירה `True`.
     - אחרת: מחזירה `False`.
   - **אסור לבצע קריאת רשת בתוך הקטע הנעול!**
-- [ ] ממש פונקציה `run_concurrent_room_bookings(available_rooms: int, seeker_names: list[str]) -> SharedRoomInventory`:
+- [x] ממש פונקציה `run_concurrent_room_bookings(available_rooms: int, seeker_names: list[str]) -> SharedRoomInventory`:
   - יוצרת Thread עבור כל מועמד ב-`seeker_names`.
   - מפעילה את **כל** ה-Threads באמצעות `t.start()` בלולאה ראשונה.
   - ממתינה לסיום **כל** ה-Threads באמצעות `t.join()` בלולאה שנייה נפרדת.
@@ -247,16 +247,16 @@ git commit -m "feat(concurrency): implement async task collection and thread-saf
 **מיקום:** `flatmatch/reports.py`, `flatmatch/observers.py`, `flatmatch/services.py`
 
 ### 5.1 תת-מערכת בקרת חוזים ושיבוץ (`LeaseInspectionSubsystem`)
-- [ ] ממש מחלקה `LeaseInspectionSubsystem` (ב-`flatmatch/reports.py` או `flatmatch/services.py`) המקושרת ל-`FlatMatchRepository`:
+- [x] ממש מחלקה `LeaseInspectionSubsystem` (ב-`flatmatch/reports.py` או `flatmatch/services.py`) המקושרת ל-`FlatMatchRepository`:
   - מוודאת שמזהי ה-`seeker_phone` וה-`owner_phone` קיימים במאגר; אם אחד מהם לא קיים, זורקת `ValueError("Invalid user link between systems")`.
   - מעדכנת רשומות שיבוץ לפי תוצאת ה-API והשירות המרכזי:
     - התאמה מאומתת ותקינה (`is_verified=True` ו-`is_approved=True`) -> סטטוס `"READY_FOR_LEASE"`.
     - חריגה מזמן נסיעה (`status == "REJECTED_COMMUTE_EXCEEDED"`) -> סטטוס `"REJECTED_HIGH_COMMUTE"`.
     - **כשל בשירות החיצוני (`is_verified=False`)** -> מונעת אישור חוזה שגוי ומגדירה סטטוס `"PENDING_MANUAL_VERIFICATION"`.
-- [ ] ממש מגיב `SubsystemSyncObserver(MatchEventListener)` ב-`flatmatch/observers.py` שמעדכן אוטומטית את `LeaseInspectionSubsystem` בכל הערכת התאמה.
+- [x] ממש מגיב `SubsystemSyncObserver(MatchEventListener)` ב-`flatmatch/observers.py` שמעדכן אוטומטית את `LeaseInspectionSubsystem` בכל הערכת התאמה.
 
 ### 5.2 דוח עסקי משולב (`flatmatch/reports.py` – סעיף 6.3)
-- [ ] ממש פונקציה `generate_integrated_business_report(repository, subsystem) -> dict`:
+- [x] ממש פונקציה `generate_integrated_business_report(repository, subsystem) -> dict`:
   - משלבת נתונים מהמאגר המרכזי ומתת-המערכת.
   - מחשבת ומחזירה **מדדים חדשים התומכים בהחלטה עסקית**:
     - `total_seekers_and_owners`: סך המשתמשים הפעילים.
@@ -282,10 +282,10 @@ git commit -m "feat(reports,integration): add LeaseInspectionSubsystem, observer
 > - **הדרישה העסקית:** כל דקת נסיעה מעל 20 דקות מפחיתה את תקרת התקציב האפקטיבית ב-15 ש"ח לדקה. אם `commute.is_verified` הוא `False`, מוחזר התקציב הבסיסי ללא קנס מרחק. התקציב המוחזר לא ירד מתחת ל-`0.0`.
 
 ### 6.1 שלב RED – כתיבת בדיקה נכשלת בלבד
-- [ ] צור ב-`flatmatch/services.py` חתימת פונקציה ריקה `calculate_commute_adjusted_budget(base_budget: float, commute: CommuteMetrics) -> float` שזורקת `NotImplementedError`.
-- [ ] צור קובץ `tests/test_tdd_feature.py` עם בדיקה `test_calculate_commute_adjusted_budget_reduces_ceiling_above_threshold` שבודקת שתקציב בסיס של `3000.0` ש"ח ונסיעה מאומתת של `30.0` דקות מחזירים בדיוק `2850.0` ש"ח.
-- [ ] הרץ `pytest tests/test_tdd_feature.py` וודא שהבדיקה **נכשלת (RED)**.
-- [ ] **בצע Commit ראשון של TDD (RED):**
+- [x] צור ב-`flatmatch/services.py` חתימת פונקציה ריקה `calculate_commute_adjusted_budget(base_budget: float, commute: CommuteMetrics) -> float` שזורקת `NotImplementedError`.
+- [x] צור קובץ `tests/test_tdd_feature.py` עם בדיקה `test_calculate_commute_adjusted_budget_reduces_ceiling_above_threshold` שבודקת שתקציב בסיס של `3000.0` ש"ח ונסיעה מאומתת של `30.0` דקות מחזירים בדיוק `2850.0` ש"ח.
+- [x] הרץ `pytest tests/test_tdd_feature.py` וודא שהבדיקה **נכשלת (RED)**.
+- [x] **בצע Commit ראשון של TDD (RED):**
 
 ```bash
 git add tests/test_tdd_feature.py flatmatch/services.py
@@ -293,9 +293,9 @@ git commit -m "test(tdd-red): add failing test for commute-adjusted budget ceili
 ```
 
 ### 6.2 שלב GREEN – מימוש מינימלי שמעביר את הבדיקה
-- [ ] ממש את החישוב ב-`calculate_commute_adjusted_budget` ב-`flatmatch/services.py` כך שהבדיקה תעבור.
-- [ ] הרץ `pytest tests/test_tdd_feature.py` וודא שהבדיקה **עוברת (GREEN)**.
-- [ ] **בצע Commit שני של TDD (GREEN):**
+- [x] ממש את החישוב ב-`calculate_commute_adjusted_budget` ב-`flatmatch/services.py` כך שהבדיקה תעבור.
+- [x] הרץ `pytest tests/test_tdd_feature.py` וודא שהבדיקה **עוברת (GREEN)**.
+- [x] **בצע Commit שני של TDD (GREEN):**
 
 ```bash
 git add flatmatch/services.py
@@ -303,10 +303,10 @@ git commit -m "feat(tdd-green): implement commute-adjusted budget ceiling calcul
 ```
 
 ### 6.3 שלב REFACTOR – שיפור הקוד והוספת מקרי קצה
-- [ ] שפר את הקוד של `calculate_commute_adjusted_budget` ב-`flatmatch/services.py`: חלץ קבועים ברורים (`FREE_COMMUTE_MINUTES = 20.0`, `PENALTY_PER_MINUTE_ILS = 15.0`), הוסף הגנה מפני `is_verified=False` והגנה מפני תקציב שלילי (`max(0.0, ...)`).
-- [ ] הרחב את `tests/test_tdd_feature.py` לבדיקת מקרי הקצה (נסיעה קצרה מ-20 דקות, נסיעה לא מאומתת, ותקציב שלילי).
-- [ ] הרץ `pytest tests/test_tdd_feature.py` וודא שכל הבדיקות **עוברות (REFACTOR)**.
-- [ ] **בצע Commit שלישי של TDD (REFACTOR):**
+- [x] שפר את הקוד של `calculate_commute_adjusted_budget` ב-`flatmatch/services.py`: חלץ קבועים ברורים (`FREE_COMMUTE_MINUTES = 20.0`, `PENALTY_PER_MINUTE_ILS = 15.0`), הוסף הגנה מפני `is_verified=False` והגנה מפני תקציב שלילי (`max(0.0, ...)`).
+- [x] הרחב את `tests/test_tdd_feature.py` לבדיקת מקרי הקצה (נסיעה קצרה מ-20 דקות, נסיעה לא מאומתת, ותקציב שלילי).
+- [x] הרץ `pytest tests/test_tdd_feature.py` וודא שכל הבדיקות **עוברות (REFACTOR)**.
+- [x] **בצע Commit שלישי של TDD (REFACTOR):**
 
 ```bash
 git add flatmatch/services.py tests/test_tdd_feature.py TASKS.md
@@ -326,34 +326,34 @@ git commit -m "refactor(tdd-refactor): extract constants and handle unverified c
 > - מחליפים את התלות החיצונית (`http_get` / `requests.get`), ולא את הפונקציה הנבדקת!
 
 ### 7.1 `tests/test_models.py` (שמירת שלב 1, ולידציה, `tmp_path` ו-`Factory`)
-- [ ] **Case 1:** `test_stage1_models_and_dealbreakers_preserved` (שימוש ב-`@pytest.fixture`): וידוא ש-`ApartmentSeeker`, `RoommateSeeker`, ו-`evaluate_dealbreakers` משלב 1 עובדים כמצופה.
-- [ ] **Case 2, 3, 4:** `test_invalid_domain_inputs_raise_value_error` (שימוש ב-`@pytest.mark.parametrize` עם לפחות 3 מצבים שונים + `pytest.raises(ValueError)`): גיל מתחת ל-18, תקציב שלילי, רמת ניקיון מחוץ ל-1..5.
-- [ ] **Case 5:** `test_repository_streams_jsonl_using_tmp_path` (שימוש ב-`tmp_path`): כתיבת קובץ JSONL זמני ל-`tmp_path`, טעינתו ב-`FlatMatchRepository` ווידוא מניעת כפילויות טלפון.
-- [ ] **Case 6:** `test_user_factory_creates_subclasses_and_rejects_invalid_type`: בדיקת `UserFactory` לשני סוגי המשתמשים וזריקת `ValueError` לסוג לא חוקי.
-- [ ] **Case 7:** `test_apartment_hold_context_rolls_back_on_error`: וידוא ש-`ApartmentHoldContext` משלב 1 מחזיר סטטוס ל-`AVAILABLE` בעת חריגה.
+- [x] **Case 1:** `test_stage1_models_and_dealbreakers_preserved` (שימוש ב-`@pytest.fixture`): וידוא ש-`ApartmentSeeker`, `RoommateSeeker`, ו-`evaluate_dealbreakers` משלב 1 עובדים כמצופה.
+- [x] **Case 2, 3, 4:** `test_invalid_domain_inputs_raise_value_error` (שימוש ב-`@pytest.mark.parametrize` עם לפחות 3 מצבים שונים + `pytest.raises(ValueError)`): גיל מתחת ל-18, תקציב שלילי, רמת ניקיון מחוץ ל-1..5.
+- [x] **Case 5:** `test_repository_streams_jsonl_using_tmp_path` (שימוש ב-`tmp_path`): כתיבת קובץ JSONL זמני ל-`tmp_path`, טעינתו ב-`FlatMatchRepository` ווידוא מניעת כפילויות טלפון.
+- [x] **Case 6:** `test_user_factory_creates_subclasses_and_rejects_invalid_type`: בדיקת `UserFactory` לשני סוגי המשתמשים וזריקת `ValueError` לסוג לא חוקי.
+- [x] **Case 7:** `test_apartment_hold_context_rolls_back_on_error`: וידוא ש-`ApartmentHoldContext` משלב 1 מחזיר סטטוס ל-`AVAILABLE` בעת חריגה.
 
 ### 7.2 `tests/test_api_client.py` (שירות חיצוני ו-Retry מבודדים מרשת)
-- [ ] **Case 8:** `test_api_client_success_returns_commute_metrics`: החלפת `http_get` ב-`Mock` המחזיר JSON תקין (`distance: 15000, duration: 1200`), ווידוא שמתקבל `distance_km == 15.0` ו-`duration_minutes == 20.0`.
-- [ ] **Case 9:** `test_api_client_timeout_retries_3_times_and_raises`: דימוי `requests.exceptions.Timeout`, החלפת `sleep_func` ב-`Mock`, ווידוא שבוצעו **בדיוק 3 ניסיונות** ונזרקה `APIConnectionError`.
-- [ ] **Case 10:** `test_api_client_retry_succeeds_on_third_attempt`: דימוי `ConnectionError` בניסיונות 1 ו-2 והצלחה בניסיון 3; וידוא קבלת `CommuteMetrics` תקין.
-- [ ] **Case 11:** `test_api_client_http_error_does_not_retry`: דימוי שגיאת HTTP (למשל 404/401 ב-`raise_for_status`), ווידוא שנזרקת `APIHTTPError` אחרי **ניסיון 1 בלבד** (ללא Retry).
-- [ ] **Case 12:** `test_api_client_missing_required_field_raises_validation_error`: החזרת JSON ללא השדה `routes` או `duration`, ווידוא זריקת `APIDataValidationError` ללא Retry.
-- [ ] **Case 13:** `test_api_client_corrupted_json_raises_format_error`: החזרת תגובה שבה `.json()` זורק `ValueError`, ווידוא זריקת `APIResponseFormatError` ללא Retry.
+- [x] **Case 8:** `test_api_client_success_returns_commute_metrics`: החלפת `http_get` ב-`Mock` המחזיר JSON תקין (`distance: 15000, duration: 1200`), ווידוא שמתקבל `distance_km == 15.0` ו-`duration_minutes == 20.0`.
+- [x] **Case 9:** `test_api_client_timeout_retries_3_times_and_raises`: דימוי `requests.exceptions.Timeout`, החלפת `sleep_func` ב-`Mock`, ווידוא שבוצעו **בדיוק 3 ניסיונות** ונזרקה `APIConnectionError`.
+- [x] **Case 10:** `test_api_client_retry_succeeds_on_third_attempt`: דימוי `ConnectionError` בניסיונות 1 ו-2 והצלחה בניסיון 3; וידוא קבלת `CommuteMetrics` תקין.
+- [x] **Case 11:** `test_api_client_http_error_does_not_retry`: דימוי שגיאת HTTP (למשל 404/401 ב-`raise_for_status`), ווידוא שנזרקת `APIHTTPError` אחרי **ניסיון 1 בלבד** (ללא Retry).
+- [x] **Case 12:** `test_api_client_missing_required_field_raises_validation_error`: החזרת JSON ללא השדה `routes` או `duration`, ווידוא זריקת `APIDataValidationError` ללא Retry.
+- [x] **Case 13:** `test_api_client_corrupted_json_raises_format_error`: החזרת תגובה שבה `.json()` זורק `ValueError`, ווידוא זריקת `APIResponseFormatError` ללא Retry.
 
 ### 7.3 `tests/test_services.py` (לוגיקה עסקית, Strategy, Observer ו-DI)
-- [ ] **Case 14:** `test_strategies_calculate_distinct_expected_scores`: השוואת `BudgetFocusedStrategy` מול `CommuteAndLifestyleStrategy` עם תוצאות מספריות קבועות מראש.
-- [ ] **Case 15:** `test_observers_updated_on_candidate_evaluation`: וידוא ש-`MatchStatisticsObserver` ו-`ApplicantNotificationObserver` מתעדכנים בעת קריאה ל-`evaluate_candidate_match`.
-- [ ] **Case 16:** `test_service_rejects_when_commute_exceeds_max_limit`: הזרקת Mock של `api_client` המחזיר 60 דקות נסיעה (כאשר הרף הוא 45), ווידוא שההתאמה נפסלת (`is_approved is False`).
+- [x] **Case 14:** `test_strategies_calculate_distinct_expected_scores`: השוואת `BudgetFocusedStrategy` מול `CommuteAndLifestyleStrategy` עם תוצאות מספריות קבועות מראש.
+- [x] **Case 15:** `test_observers_updated_on_candidate_evaluation`: וידוא ש-`MatchStatisticsObserver` ו-`ApplicantNotificationObserver` מתעדכנים בעת קריאה ל-`evaluate_candidate_match`.
+- [x] **Case 16:** `test_service_rejects_when_commute_exceeds_max_limit`: הזרקת Mock של `api_client` המחזיר 60 דקות נסיעה (כאשר הרף הוא 45), ווידוא שההתאמה נפסלת (`is_approved is False`).
 
 ### 7.4 `tests/test_async_processing.py` ו-`tests/test_threaded_processing.py` (מקביליות)
-- [ ] **Case 17:** `test_async_concurrent_matches_sequential_and_preserves_order`: הרצת הגרסה הסדרתית והמקבילית על 4 דירות עם זמני סיום הפוכים מסדר הקלט, ווידוא זהות מלאה ושמירה על סדר הקלט.
-- [ ] **Case 18:** `test_threaded_room_booking_lock_prevents_overbooking`: הרצת 6 Threads שמנסים לתפוס 2 חדרים פנויים; וידוא שרק 2 אושרו (`len(approved_seekers) == 2`) ושנותרו `0` חדרים פנויים.
+- [x] **Case 17:** `test_async_concurrent_matches_sequential_and_preserves_order`: הרצת הגרסה הסדרתית והמקבילית על 4 דירות עם זמני סיום הפוכים מסדר הקלט, ווידוא זהות מלאה ושמירה על סדר הקלט.
+- [x] **Case 18:** `test_threaded_room_booking_lock_prevents_overbooking`: הרצת 6 Threads שמנסים לתפוס 2 חדרים פנויים; וידוא שרק 2 אושרו (`len(approved_seekers) == 2`) ושנותרו `0` חדרים פנויים.
 
 ### 7.5 `tests/test_integration.py` ו-`tests/test_reports.py` (4 מקרי סעיף 6.4)
-- [ ] **Case 19:** `test_integrated_process_end_to_end_success` (`test_integration.py`): תהליך משולב מלא המסתיים בהצלחה ומעביר את הרשומה בתת-המערכת לסטטוס `"READY_FOR_LEASE"`.
-- [ ] **Case 20:** `test_integrated_process_api_failure_prevents_false_approval` (`test_integration.py`): כשל בשירות החיצוני מעביר את המערכת למצב גיבוי ויוצר בתת-המערכת סטטוס `"PENDING_MANUAL_VERIFICATION"`.
-- [ ] **Case 21:** `test_subsystem_invalid_user_link_raises_error` (`test_integration.py`): העברת מזהה משתמש שאינו קיים במאגר אל תת-המערכת זורקת `ValueError`.
-- [ ] **Case 22:** `test_integrated_report_calculates_new_metrics_accurately` (`test_reports.py`): בדיקת נכונות המדדים החדשים בדוח המשולב (`ready_for_lease_count`, `pending_manual_verification_count`, `verified_ready_ratio`).
+- [x] **Case 19:** `test_integrated_process_end_to_end_success` (`test_integration.py`): תהליך משולב מלא המסתיים בהצלחה ומעביר את הרשומה בתת-המערכת לסטטוס `"READY_FOR_LEASE"`.
+- [x] **Case 20:** `test_integrated_process_api_failure_prevents_false_approval` (`test_integration.py`): כשל בשירות החיצוני מעביר את המערכת למצב גיבוי ויוצר בתת-המערכת סטטוס `"PENDING_MANUAL_VERIFICATION"`.
+- [x] **Case 21:** `test_subsystem_invalid_user_link_raises_error` (`test_integration.py`): העברת מזהה משתמש שאינו קיים במאגר אל תת-המערכת זורקת `ValueError`.
+- [x] **Case 22:** `test_integrated_report_calculates_new_metrics_accurately` (`test_reports.py`): בדיקת נכונות המדדים החדשים בדוח המשולב (`ready_for_lease_count`, `pending_manual_verification_count`, `verified_ready_ratio`).
 
 ### 🔖 Git Commit – Part 7
 ```bash
@@ -368,12 +368,12 @@ git commit -m "test(suite): add comprehensive pytest suite covering API, retries
 
 **מיקום:** `main.py`
 
-- [ ] **8.1 תמיכה בשני מצבי הרצה (ללא תפריט אינטראקטיבי):**
+- [x] **8.1 תמיכה בשני מצבי הרצה (ללא תפריט אינטראקטיבי):**
   - **ברירת מחדל (`python main.py`):** רצה מקומית לחלוטין ללא רשת וללא מפתחות, ומדפיסה בראש הפלט:
     `[MODE: OFFLINE / SIMULATED DATA - No network or API keys required]`
   - **חיבור אמיתי (`python main.py --live`):** מבצעת קריאת `GET` אמיתית ל-OSRM API, ומדפיסה בראש הפלט:
     `[MODE: LIVE NETWORK API - Fetching real routing data from OSRM]`
-- [ ] **8.2 תסריט ההדגמה ב-`main.py`:**
+- [x] **8.2 תסריט ההדגמה ב-`main.py`:**
   - טעינת המשתמשים מ-`data/sample_data.jsonl` באמצעות `UserFactory`.
   - הרצת `FlatMatchService` עם שתי האסטרטגיות (`BudgetFocusedStrategy` ו-`CommuteAndLifestyleStrategy`), ה-`Observers` ותת-המערכת `LeaseInspectionSubsystem`.
   - הדגמת תגובת המערכת גם בהצלחת API וגם בכשל API (Fallback -> `PENDING_MANUAL_VERIFICATION`).
@@ -395,13 +395,13 @@ git commit -m "feat(main): add stage 2 end-to-end demonstration with offline def
 **מיקום:** `README.md`, `AI_USAGE.md`
 
 ### 9.1 עדכון `AI_USAGE.md` (סעיף 7.3)
-- [ ] הוסף פרק `## Stage 2 – Responsible AI Usage` בקובץ `AI_USAGE.md` בלבד, הכולל:
+- [x] הוסף פרק `## Stage 2 – Responsible AI Usage` בקובץ `AI_USAGE.md` בלבד, הכולל:
   - תיעוד בקשת תוכנית ומקרי בדיקה לפני כתיבת קוד.
   - פירוט **לפחות שני מקרים** שבהם הגדרנו בעצמנו את התוצאות הצפויות מראש (חישוב תקרת התקציב ב-TDD וחישוב ציוני האסטרטגיות).
   - תיעוד מה הציע ה-AI, מה אומת מול הבדיקות, ומה תוקן.
 
 ### 9.2 עדכון `README.md` תחת כותרת אחת `## שלב 2` (סעיף 7.2)
-- [ ] שמור על תוכן שלב 1 הקיים, והוסף בסופו כותרת `## שלב 2` הכוללת **בדיוק את 5 תתי-הסעיפים הבאים** בנקודות קצרות:
+- [x] שמור על תוכן שלב 1 הקיים, והוסף בסופו כותרת `## שלב 2` הכוללת **בדיוק את 5 תתי-הסעיפים הבאים** בנקודות קצרות:
   1. **מה נוסף בשלב 2?** – ההרחבה העסקית (OSRM Commute API), הערך העסקי, תת-המערכת המשולבת (`LeaseInspectionSubsystem`), התהליך המשותף והמדד החדש בדוח.
   2. **איך מריצים?** – גרסת Python, התקנת תלויות, משתני סביבה (`.env.example` ללא סודות), פקודה להרצה ללא רשת (`python main.py`), פקודה להרצה מול השירות האמיתי (`python main.py --live`), ופקודה להרצת הבדיקות (`pytest -v`).
   3. **איך הקוד מאורגן?** – עץ תיקיות מעודכן, שורה על תפקיד כל מודול מרכזי, מיקום תת-המערכת וארבע הבדיקות הנוספות, וחלוקת אחריות קצרה בצוות.
@@ -426,7 +426,7 @@ git commit -m "docs(stage2): complete README stage 2 section, TDD commit referen
 
 ## ✅ Part 10: בדיקת שער סופית לפני הגשה (Submission Verification Gate)
 
-- [ ] `pytest -v` עובר ב-100% (לפחות 22 בדיקות עוברות ללא רשת וללא המתנות אמיתיות).
-- [ ] `python main.py` רץ ללא שגיאות ללא רשת ומדפיס שהמידע מדומה (`SIMULATED`).
-- [ ] `python main.py --live` מתחבר ל-OSRM API האמיתי ומדפיס שהמידע אמיתי (`LIVE`).
-- [ ] `git status` נקי, אין קובץ `.env` במאגר, וכל ה-Commits של שלב 2 (כולל שלושת ה-Commits של TDD) מתועדים ב-`README.md`.
+- [x] `pytest -v` עובר ב-100% (לפחות 22 בדיקות עוברות ללא רשת וללא המתנות אמיתיות).
+- [x] `python main.py` רץ ללא שגיאות ללא רשת ומדפיס שהמידע מדומה (`SIMULATED`).
+- [x] `python main.py --live` מתחבר ל-OSRM API האמיתי ומדפיס שהמידע אמיתי (`LIVE`).
+- [x] `git status` נקי, אין קובץ `.env` במאגר, וכל ה-Commits של שלב 2 (כולל שלושת ה-Commits של TDD) מתועדים ב-`README.md`.
