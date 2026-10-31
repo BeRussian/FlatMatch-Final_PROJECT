@@ -202,7 +202,19 @@ class FlatMatchService:
 def calculate_commute_adjusted_budget(base_budget: float, commute: CommuteMetrics) -> float:
     """
     TDD Feature: Adjusts seeker's maximum budget ceiling based on daily commute duration.
-    (Stub raising NotImplementedError for TDD RED phase).
     """
-    raise NotImplementedError("TDD RED: calculate_commute_adjusted_budget not yet implemented")
+    if not isinstance(commute, CommuteMetrics):
+        raise TypeError(f"Expected CommuteMetrics, got {type(commute).__name__}")
+    if not isinstance(base_budget, (int, float)) or base_budget < 0:
+        raise ValueError("Base budget must be non-negative")
+
+    if not commute.is_verified:
+        return float(base_budget)
+
+    if commute.duration_minutes <= 20.0:
+        return float(base_budget)
+
+    penalty = (commute.duration_minutes - 20.0) * 15.0
+    adjusted = max(0.0, float(base_budget) - penalty)
+    return round(adjusted, 2)
 
