@@ -94,9 +94,26 @@ class FlatMatchRepository:
             count += 1
         return count
 
+    def add_user(self, user: User) -> None:
+        """Adds a single user directly into repository indexes."""
+        if not isinstance(user, User):
+            raise TypeError(f"Expected User instance, got {type(user).__name__}")
+        if user.phone in self._users_by_phone:
+            raise ValueError(f"Duplicate user phone ID detected: '{user.phone}'")
+        self._users_by_phone[user.phone] = user
+        self._users_list.append(user)
+
     def get_by_phone(self, phone: str):
         """O(1) safe lookup of user by unique phone ID."""
         return self._users_by_phone.get(phone)
+
+    def find_by_phone(self, phone: str):
+        """Alias for get_by_phone for descriptive querying."""
+        return self.get_by_phone(phone)
+
+    def total_users(self) -> int:
+        """Returns the total number of registered users."""
+        return len(self._users_list)
 
     def get_all_users(self) -> list:
         """Returns all loaded users."""

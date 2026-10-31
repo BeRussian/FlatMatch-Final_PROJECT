@@ -100,6 +100,11 @@ from .threaded_processing import (
     UnsafeSharedRoomInventory,
     run_concurrent_room_bookings,
 )
+from .reports import (
+    LeaseInspectionSubsystem,
+    SubsystemSyncObserver,
+    generate_integrated_business_report,
+)
 
 __all__ = [
     "Preferences",
@@ -165,4 +170,7 @@ __all__ = [
     "SharedRoomInventory",
     "UnsafeSharedRoomInventory",
     "run_concurrent_room_bookings",
+    "LeaseInspectionSubsystem",
+    "SubsystemSyncObserver",
+    "generate_integrated_business_report",
 ]
