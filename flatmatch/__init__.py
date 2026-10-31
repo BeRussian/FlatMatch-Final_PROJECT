@@ -7,6 +7,10 @@ This package encapsulates:
 - Collection Processing, Queues & Sorting (processing.py)
 - Iterators, Generators & Lazy Pipeline (iterators.py)
 - Resource & Lifecycle Context Managers (context_managers.py)
+- Smart Location & Address Normalization (address_normalizer.py)
+- Geocoding Client (geocoding.py)
+- Commute Routing API Client with Retries & Fallback (api_client.py)
+- Async Rate-Limited Verification (async_processing.py)
 """
 
 from .models import (
@@ -35,6 +39,9 @@ from .processing import (
     find_user_by_id,
     group_seekers_by_city,
     count_seekers_by_city,
+    group_seekers_by_destination,
+    count_seekers_by_destination,
+    extract_unique_destinations,
     format_grouped_summary,
     RoommateApplicationQueue,
     PriorityCandidate,
@@ -57,25 +64,6 @@ from .context_managers import (
     SearchSessionContext,
     ApartmentHoldContext,
 )
-from .factories import (
-    UserFactory,
-    VALID_USER_TYPES,
-)
-from .strategies import (
-    MatchingStrategy,
-    BudgetFocusedStrategy,
-    CommuteAndLifestyleStrategy,
-)
-from .observers import (
-    MatchEventListener,
-    MatchStatisticsObserver,
-    ApplicantNotificationObserver,
-)
-from .services import (
-    FlatMatchService,
-    MatchEvaluationResult,
-    calculate_commute_adjusted_budget,
-)
 from .address_normalizer import (
     AddressNormalizer,
     normalize_address,
@@ -96,18 +84,9 @@ from .async_processing import (
     collect_verifications_sequential,
     collect_verifications_concurrent,
 )
-from .threaded_processing import (
-    SharedRoomInventory,
-    UnsafeSharedRoomInventory,
-    run_concurrent_room_bookings,
-)
-from .reports import (
-    LeaseInspectionSubsystem,
-    SubsystemSyncObserver,
-    generate_integrated_business_report,
-)
 
 __all__ = [
+    # Stage 1 Domain Models
     "Preferences",
     "Apartment",
     "User",
@@ -116,10 +95,12 @@ __all__ = [
     "CommuteMetrics",
     "sample_apartment_seekers",
     "sample_roommate_seekers",
+    # Stage 1 Ingestion & Repository
     "FlatMatchRepository",
     "stream_users_from_jsonl",
     "load_users_from_jsonl",
     "parse_user_record",
+    # Stage 1 Collections, Queues, Sets, Sorting
     "create_match_record",
     "partition_candidates",
     "compare_amenities",
@@ -129,6 +110,9 @@ __all__ = [
     "find_user_by_id",
     "group_seekers_by_city",
     "count_seekers_by_city",
+    "group_seekers_by_destination",
+    "count_seekers_by_destination",
+    "extract_unique_destinations",
     "format_grouped_summary",
     "RoommateApplicationQueue",
     "PriorityCandidate",
@@ -140,24 +124,14 @@ __all__ = [
     "sort_seekers_by_budget_descending",
     "sort_seekers_by_age",
     "sort_apartments_by_city_and_rent",
+    # Stage 1 Iterables & Context Managers
     "SeekerCollection",
     "SeekerIterator",
     "stream_budget_candidates",
     "build_lazy_seeker_pipeline",
     "SearchSessionContext",
     "ApartmentHoldContext",
-    "UserFactory",
-    "VALID_USER_TYPES",
-    "MatchingStrategy",
-    "BudgetFocusedStrategy",
-    "CommuteAndLifestyleStrategy",
-    "MatchEventListener",
-    "MatchStatisticsObserver",
-    "ApplicantNotificationObserver",
-    "FlatMatchService",
-    "MatchEvaluationResult",
-    "calculate_commute_adjusted_budget",
-
+    # Stage 2 Smart Location & External API Pipeline
     "AddressNormalizer",
     "normalize_address",
     "Coordinates",
@@ -170,10 +144,4 @@ __all__ = [
     "fetch_apartment_verification_async",
     "collect_verifications_sequential",
     "collect_verifications_concurrent",
-    "SharedRoomInventory",
-    "UnsafeSharedRoomInventory",
-    "run_concurrent_room_bookings",
-    "LeaseInspectionSubsystem",
-    "SubsystemSyncObserver",
-    "generate_integrated_business_report",
 ]

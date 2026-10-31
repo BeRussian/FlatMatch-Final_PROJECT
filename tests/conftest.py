@@ -12,7 +12,6 @@ from flatmatch.models import (
     CommuteMetrics,
 )
 from flatmatch.api_client import CommuteAPIClient
-from flatmatch.strategies import BudgetFocusedStrategy, CommuteAndLifestyleStrategy
 
 
 @pytest.fixture
@@ -103,13 +102,3 @@ def mock_api_client(mock_successful_http_get):
         max_retries=3,
         retry_delay=0.0,
     )
-
-
-@pytest.fixture
-def budget_strategy():
-    return BudgetFocusedStrategy()
-
-
-@pytest.fixture
-def lifestyle_strategy():
-    return CommuteAndLifestyleStrategy()
