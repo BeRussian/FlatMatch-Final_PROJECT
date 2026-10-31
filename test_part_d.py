@@ -96,9 +96,9 @@ def test_streaming_and_repository():
     print("Testing Streaming JSONL Reader and FlatMatchRepository...")
     data_path = os.path.join(os.path.dirname(__file__), "data", "sample_data.jsonl")
     repo = FlatMatchRepository(data_path)
-    assert len(repo) == 20
+    assert len(repo) == 45
     assert len(repo.get_apartment_seekers()) == 15
-    assert len(repo.get_roommate_seekers()) == 5
+    assert len(repo.get_roommate_seekers()) == 30
 
     user = repo.get_by_phone("050-1000001")
     assert user is not None
