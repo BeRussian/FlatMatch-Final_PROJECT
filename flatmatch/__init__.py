@@ -15,6 +15,7 @@ from .models import (
     User,
     ApartmentSeeker,
     RoommateSeeker,
+    CommuteMetrics,
     sample_apartment_seekers,
     sample_roommate_seekers,
 )
@@ -63,6 +64,7 @@ __all__ = [
     "User",
     "ApartmentSeeker",
     "RoommateSeeker",
+    "CommuteMetrics",
     "sample_apartment_seekers",
     "sample_roommate_seekers",
     "FlatMatchRepository",

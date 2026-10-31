@@ -9,12 +9,12 @@ from collections import deque
 import heapq
 
 try:
-    from .models import (
+    from flatmatch.models import (
         sample_apartment_seekers,
         sample_roommate_seekers
     )
 except ImportError:
-    from models import (
+    from .models import (
         sample_apartment_seekers,
         sample_roommate_seekers
     )
@@ -161,6 +161,30 @@ def count_seekers_by_city(seekers: list) -> dict:
     return counts
 
 
+def group_seekers_by_destination(seekers: list) -> dict:
+    """
+    Secondary dictionary purpose: Grouping seekers by target destination hub.
+    """
+    groups = {}
+    for seeker in seekers:
+        dest = seeker.destination_address
+        if dest not in groups:
+            groups[dest] = []
+        groups[dest].append(seeker)
+    return groups
+
+
+def count_seekers_by_destination(seekers: list) -> dict:
+    """
+    Secondary dictionary purpose: Counting seeker occurrences per destination hub.
+    """
+    counts = {}
+    for seeker in seekers:
+        dest = seeker.destination_address
+        counts[dest] = counts.get(dest, 0) + 1
+    return counts
+
+
 def format_grouped_summary(grouped: dict) -> list:
     """
     Demonstrates iterating over dictionary items using .items() with tuple unpacking:
@@ -299,6 +323,14 @@ def extract_unique_preferred_cities(seekers: list) -> set:
     Flattens preferred cities from all seekers into a set of unique city names.
     """
     return {city for s in seekers for city in s.preferred_cities}
+
+
+def extract_unique_destinations(seekers: list) -> set:
+    """
+    Set comprehension for extracting unique destination addresses/hubs:
+    Flattens destination addresses from all seekers into a set of unique destinations.
+    """
+    return {s.destination_address for s in seekers}
 
 
 def map_seeker_phones_to_budgets(seekers: list) -> dict:

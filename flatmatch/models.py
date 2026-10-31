@@ -138,7 +138,7 @@ class Apartment:
         "Bat Yam", "Netanya", "Kfar Saba", "Ra'anana", "Ashdod", "Ashkelon", "Modi'in"
     }
 
-    def __init__(self, city: str, rent: float, rooms: int = 1, amenities: set = None):
+    def __init__(self, city: str, rent: float, rooms: int = 1, amenities: set = None, address: str = ""):
         if not self.is_valid_city(city):
             raise ValueError(f"City '{city}' is invalid or not in supported cities")
         self._city = city.strip()
@@ -157,6 +157,10 @@ class Apartment:
                 raise ValueError("amenities must be a set, list, or tuple")
             for item in amenities:
                 self.add_amenity(item)
+
+        if address and not isinstance(address, str):
+            raise ValueError("address must be a str")
+        self._address = address.strip() if (address and address.strip()) else f"Center, {self._city}"
 
     @staticmethod
     def is_valid_city(city: str) -> bool:
@@ -220,6 +224,16 @@ class Apartment:
             return False
         return amenity.strip() in self._amenities
 
+    @property
+    def address(self) -> str:
+        return self._address
+
+    @address.setter
+    def address(self, value: str):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("address must be a non-empty str")
+        self._address = value.strip()
+
     @classmethod
     def from_dict(cls, data: dict):
         if not isinstance(data, dict):
@@ -235,13 +249,14 @@ class Apartment:
             city=data["city"],
             rent=data["rent"],
             rooms=data.get("rooms", 1),
-            amenities=amenities_set
+            amenities=amenities_set,
+            address=data.get("address", "")
         )
 
     def __repr__(self) -> str:
         return (
             f"Apartment(city={self._city!r}, rent={self._rent!r}, "
-            f"rooms={self._rooms!r}, amenities={self._amenities!r})"
+            f"rooms={self._rooms!r}, amenities={self._amenities!r}, address={self._address!r})"
         )
 
     def __str__(self) -> str:
@@ -322,6 +337,47 @@ class User(ABC):
         pass
 
 
+class CommuteMetrics:
+    """
+    Encapsulates verified or fallback commute routing data between two locations.
+    """
+    def __init__(
+        self,
+        origin_address: str,
+        dest_address: str,
+        distance_km: float,
+        duration_minutes: float,
+        is_verified: bool = True
+    ):
+        if not isinstance(origin_address, str) or not origin_address.strip():
+            raise ValueError("origin_address must be a non-empty str")
+        if not isinstance(dest_address, str) or not dest_address.strip():
+            raise ValueError("dest_address must be a non-empty str")
+        if not isinstance(distance_km, (int, float)) or distance_km < 0:
+            raise ValueError("distance_km must be a non-negative number")
+        if not isinstance(duration_minutes, (int, float)) or duration_minutes < 0:
+            raise ValueError("duration_minutes must be a non-negative number")
+
+        self.origin_address = origin_address.strip()
+        self.dest_address = dest_address.strip()
+        self.distance_km = round(float(distance_km), 2)
+        self.duration_minutes = round(float(duration_minutes), 2)
+        self.is_verified = bool(is_verified)
+
+    def __repr__(self) -> str:
+        return (
+            f"CommuteMetrics(origin_address={self.origin_address!r}, "
+            f"dest_address={self.dest_address!r}, "
+            f"distance_km={self.distance_km!r}, "
+            f"duration_minutes={self.duration_minutes!r}, "
+            f"is_verified={self.is_verified!r})"
+        )
+
+    def __str__(self) -> str:
+        verified_str = "Verified" if self.is_verified else "Unverified Fallback"
+        return f"{self.duration_minutes} min ({self.distance_km} km) [{verified_str}]"
+
+
 class ApartmentSeeker(User):
     def __init__(
         self,
@@ -329,21 +385,44 @@ class ApartmentSeeker(User):
         age: int,
         phone: str,
         max_budget: float,
-        preferred_cities: list,
-        preferences_OBJ: Preferences = None
+        destination_address: str = "Tel Aviv",
+        max_commute_minutes: float = 45.0,
+        preferences_OBJ: Preferences = None,
+        preferred_cities: list = None,
     ):
+        # Handle backward compatibility if positional arguments were passed in legacy order:
+        # Legacy: (name, age, phone, max_budget, preferred_cities, preferences_OBJ)
+        if isinstance(destination_address, (list, tuple)):
+            preferred_cities = list(destination_address)
+            destination_address = preferred_cities[0] if (len(preferred_cities) > 0 and isinstance(preferred_cities[0], str)) else "Tel Aviv"
+
+        if isinstance(max_commute_minutes, Preferences):
+            preferences_OBJ = max_commute_minutes
+            max_commute_minutes = 45.0
+
         super().__init__(name=name, age=age, phone=phone, preferences_OBJ=preferences_OBJ)
 
         if not isinstance(max_budget, (int, float)) or max_budget <= 0:
             raise ValueError("max_budget must be a positive number")
         self._max_budget = float(max_budget)
 
-        if not isinstance(preferred_cities, list) or len(preferred_cities) == 0:
-            raise ValueError("preferred_cities must be a non-empty list of cities")
-        for city in preferred_cities:
-            if not isinstance(city, str) or not city.strip():
-                raise ValueError("Each city in preferred_cities must be a non-empty str")
-        self._preferred_cities = [c.strip() for c in preferred_cities]
+        # Handle backward compatibility: if preferred_cities was given and destination_address defaulted
+        if preferred_cities and isinstance(preferred_cities, list) and len(preferred_cities) > 0:
+            if destination_address == "Tel Aviv" or not destination_address:
+                destination_address = preferred_cities[0]
+
+        if not isinstance(destination_address, str) or not destination_address.strip():
+            raise ValueError("destination_address must be a non-empty str")
+        self._destination_address = destination_address.strip()
+
+        if not isinstance(max_commute_minutes, (int, float)) or max_commute_minutes <= 0:
+            raise ValueError("max_commute_minutes must be a positive number")
+        self._max_commute_minutes = float(max_commute_minutes)
+
+        if preferred_cities and isinstance(preferred_cities, list):
+            self._preferred_cities = [c.strip() for c in preferred_cities if isinstance(c, str) and c.strip()]
+        else:
+            self._preferred_cities = [self._destination_address]
 
     @property
     def max_budget(self) -> float:
@@ -354,6 +433,27 @@ class ApartmentSeeker(User):
         if not isinstance(value, (int, float)) or value <= 0:
             raise ValueError("max_budget must be a positive number")
         self._max_budget = float(value)
+
+    @property
+    def destination_address(self) -> str:
+        return self._destination_address
+
+    @destination_address.setter
+    def destination_address(self, value: str):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("destination_address must be a non-empty str")
+        self._destination_address = value.strip()
+        self._preferred_cities = [self._destination_address]
+
+    @property
+    def max_commute_minutes(self) -> float:
+        return self._max_commute_minutes
+
+    @max_commute_minutes.setter
+    def max_commute_minutes(self, value: float):
+        if not isinstance(value, (int, float)) or value <= 0:
+            raise ValueError("max_commute_minutes must be a positive number")
+        self._max_commute_minutes = float(value)
 
     @property
     def preferred_cities(self) -> list:
@@ -381,20 +481,28 @@ class ApartmentSeeker(User):
         else:
             pref_obj = None
 
+        dest_addr = data.get("destination_address")
+        if not dest_addr and data.get("preferred_cities"):
+            dest_addr = data["preferred_cities"][0] if data["preferred_cities"] else "Tel Aviv"
+        if not dest_addr:
+            dest_addr = "Tel Aviv"
+
         return cls(
             name=data["name"],
             age=data["age"],
             phone=data["phone"],
             max_budget=data["max_budget"],
-            preferred_cities=data["preferred_cities"],
-            preferences_OBJ=pref_obj
+            destination_address=dest_addr,
+            max_commute_minutes=data.get("max_commute_minutes", 45.0),
+            preferences_OBJ=pref_obj,
+            preferred_cities=data.get("preferred_cities")
         )
 
     def __repr__(self) -> str:
         return (
             f"ApartmentSeeker(name={self._name!r}, age={self._age!r}, phone={self._phone!r}, "
-            f"max_budget={self._max_budget!r}, preferred_cities={self._preferred_cities!r}, "
-            f"preferences_OBJ={self._preferences!r})"
+            f"max_budget={self._max_budget!r}, destination_address={self._destination_address!r}, "
+            f"max_commute_minutes={self._max_commute_minutes!r}, preferences_OBJ={self._preferences!r})"
         )
 
     def __str__(self) -> str:
@@ -406,17 +514,16 @@ class ApartmentSeeker(User):
         return self._max_budget < other._max_budget
 
     def get_role_summary(self) -> str:
-        cities_str = ", ".join(self._preferred_cities)
-        return f"Apartment Seeker: {self.name}, Age: {self.age}, Max Budget: {self._max_budget} NIS, Preferred Cities: [{cities_str}]"
+        return (
+            f"Apartment Seeker: {self.name}, Age: {self.age}, Max Budget: {self._max_budget} NIS, "
+            f"Destination: '{self._destination_address}' (Max Commute: {self._max_commute_minutes} min)"
+        )
 
     def evaluate_dealbreakers(self, other) -> bool:
-        # בודק אם השכ"ד חורג או שהעיר לא ברשימת הערים המבוקשות
+        # בודק אם השכ"ד חורג או שיש סתירת הרגלי חיים
         if isinstance(other, RoommateSeeker):
             apt = other.apartment
             if apt.rent > self._max_budget:
-                return True
-            cities_lower = [c.lower() for c in self._preferred_cities]
-            if apt.city.strip().lower() not in cities_lower:
                 return True
             if self.preferences.has_conflict(other.preferences):
                 return True
@@ -424,9 +531,6 @@ class ApartmentSeeker(User):
 
         if isinstance(other, Apartment):
             if other.rent > self._max_budget:
-                return True
-            cities_lower = [c.lower() for c in self._preferred_cities]
-            if other.city.strip().lower() not in cities_lower:
                 return True
             return False
 
