@@ -14,9 +14,10 @@ import os
 import sys
 from typing import List, Tuple, Dict, Any
 
-# Ensure UTF-8 I/O encoding across Windows consoles to seamlessly handle any characters
+# Ensure UTF-8 I/O encoding across Windows consoles
 if sys.platform.startswith("win"):
     try:
+        os.system("")  # Enable native ANSI VT100 colors in Windows console
         if hasattr(sys.stdout, "reconfigure"):
             sys.stdout.reconfigure(encoding="utf-8")
         if hasattr(sys.stderr, "reconfigure"):
@@ -25,6 +26,25 @@ if sys.platform.startswith("win"):
             sys.stdin.reconfigure(encoding="utf-8")
     except Exception:
         pass
+
+
+class Color:
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    GRAY = "\033[90m"
+    CYAN = "\033[36m"
+    BOLD_CYAN = "\033[1;36m"
+    GREEN = "\033[32m"
+    BOLD_GREEN = "\033[1;32m"
+    YELLOW = "\033[33m"
+    BOLD_YELLOW = "\033[1;33m"
+    BLUE = "\033[34m"
+    BOLD_BLUE = "\033[1;34m"
+    MAGENTA = "\033[35m"
+    RED = "\033[31m"
+    BOLD_RED = "\033[1;31m"
+
 
 from flatmatch import (
     ApartmentSeeker,
@@ -59,7 +79,7 @@ PRESET_DESTINATIONS = [
 def get_input(prompt: str, default: str = "") -> str:
     """Helper to get user input with an optional default value."""
     if default:
-        raw = input(f"{prompt} [{default}]: ").strip()
+        raw = input(f"{prompt} [{Color.CYAN}{default}{Color.RESET}]: ").strip()
         return raw if raw else default
     return input(f"{prompt}: ").strip()
 
@@ -72,9 +92,9 @@ def get_int_input(prompt: str, default: int, min_val: int, max_val: int) -> int:
             val = int(raw)
             if min_val <= val <= max_val:
                 return val
-            print(f"  [!] Please enter a whole number between {min_val} and {max_val}.")
+            print(f"  {Color.YELLOW}[!] Please enter a whole number between {min_val} and {max_val}.{Color.RESET}")
         except ValueError:
-            print("  [!] Invalid input. Expected an integer number.")
+            print(f"  {Color.RED}[!] Invalid input. Expected an integer number.{Color.RESET}")
 
 
 def get_float_input(prompt: str, default: float, min_val: float) -> float:
@@ -85,14 +105,14 @@ def get_float_input(prompt: str, default: float, min_val: float) -> float:
             val = float(raw)
             if val >= min_val:
                 return val
-            print(f"  [!] Please enter a number greater than or equal to {min_val}.")
+            print(f"  {Color.YELLOW}[!] Please enter a number greater than or equal to {min_val}.{Color.RESET}")
         except ValueError:
-            print("  [!] Invalid input. Expected a valid number.")
+            print(f"  {Color.RED}[!] Invalid input. Expected a valid number.{Color.RESET}")
 
 
 def get_bool_input(prompt: str, default: bool) -> bool:
     """Prompt for a yes/no boolean value."""
-    default_str = "Y/n" if default else "y/N"
+    default_str = f"{Color.CYAN}Y/n{Color.RESET}" if default else f"{Color.CYAN}y/N{Color.RESET}"
     while True:
         raw = input(f"{prompt} ({default_str}): ").strip().lower()
         if not raw:
@@ -101,7 +121,7 @@ def get_bool_input(prompt: str, default: bool) -> bool:
             return True
         if raw in ("n", "no", "false", "0"):
             return False
-        print("  [!] Please answer 'y' for Yes or 'n' for No.")
+        print(f"  {Color.YELLOW}[!] Please answer 'y' for Yes or 'n' for No.{Color.RESET}")
 
 
 def get_destination_input() -> str:
@@ -109,13 +129,12 @@ def get_destination_input() -> str:
     Seamless hybrid destination selection.
     User can enter a preset number (1-12) or directly type any custom address/city.
     """
-    print("\nSelect your workplace, campus, or study destination:")
+    print(f"\n{Color.BOLD_BLUE}Select your workplace, campus, or study destination:{Color.RESET}")
     for idx, preset in enumerate(PRESET_DESTINATIONS, start=1):
-        print(f"  [{idx:2d}] {preset}")
-    print("  Or type any custom street address or city (e.g. Rothschild 10, Tel Aviv)")
+        print(f"  {Color.CYAN}[{idx:2d}]{Color.RESET} {preset}")
+    print(f"  {Color.GRAY}Or type any custom street address or city (e.g. Rothschild 10, Tel Aviv){Color.RESET}")
 
-    default_dest = "1"
-    raw = input(f"\nEnter preset number [1-{len(PRESET_DESTINATIONS)}] OR custom address [{PRESET_DESTINATIONS[0]}]: ").strip()
+    raw = input(f"\nEnter preset number [1-{len(PRESET_DESTINATIONS)}] OR custom address [{Color.CYAN}{PRESET_DESTINATIONS[0]}{Color.RESET}]: ").strip()
     if not raw:
         return PRESET_DESTINATIONS[0]
 
@@ -124,21 +143,21 @@ def get_destination_input() -> str:
         choice_idx = int(raw)
         if 1 <= choice_idx <= len(PRESET_DESTINATIONS):
             chosen = PRESET_DESTINATIONS[choice_idx - 1]
-            print(f"  -> Selected preset: {chosen}")
+            print(f"  {Color.GREEN}-> Selected preset:{Color.RESET} {Color.BOLD}{chosen}{Color.RESET}")
             return chosen
 
     # Otherwise, treat raw text directly as custom destination
-    print(f"  -> Custom destination entered: '{raw}'")
+    print(f"  {Color.GREEN}-> Custom destination entered:{Color.RESET} '{Color.BOLD}{raw}{Color.RESET}'")
     return raw
 
 
 def get_kashrut_input() -> str:
     """Prompt for kashrut category with numbered presets or direct names."""
-    print("\nSelect your Kashrut preference:")
-    print("  [1] secular       (חילוני)")
-    print("  [2] traditional   (מסורתי)")
-    print("  [3] religious     (דתי)")
-    print("  [4] ultra_orthodox (חרדי)")
+    print(f"\n{Color.BOLD_BLUE}Select your Kashrut preference:{Color.RESET}")
+    print(f"  {Color.CYAN}[1]{Color.RESET} secular")
+    print(f"  {Color.CYAN}[2]{Color.RESET} traditional")
+    print(f"  {Color.CYAN}[3]{Color.RESET} religious")
+    print(f"  {Color.CYAN}[4]{Color.RESET} ultra_orthodox")
 
     mapping = {
         "1": "secular",
@@ -150,7 +169,7 @@ def get_kashrut_input() -> str:
         "religious": "religious",
         "ultra_orthodox": "ultra_orthodox",
     }
-    raw = input("Enter choice [1-4, default: 1 (secular)]: ").strip().lower()
+    raw = input(f"Enter choice [1-4, default: {Color.CYAN}1 (secular){Color.RESET}]: ").strip().lower()
     return mapping.get(raw, "secular")
 
 
@@ -164,27 +183,27 @@ def get_sleep_schedule_input() -> str:
         "night_owl": "night_owl",
         "flexible": "flexible",
     }
-    raw = input("Sleep schedule: [1] morning_person, [2] night_owl, [3] flexible [default: 1]: ").strip().lower()
+    raw = input(f"Sleep schedule: [{Color.CYAN}1{Color.RESET}] morning_person, [{Color.CYAN}2{Color.RESET}] night_owl, [{Color.CYAN}3{Color.RESET}] flexible [default: {Color.CYAN}1{Color.RESET}]: ").strip().lower()
     return mapping.get(raw, "morning_person")
 
 
 def run_interactive_session():
-    print("=" * 80)
-    print("      FLATMATCH - SMART APARTMENT & ROOMMATE FINDER (CLI)")
-    print("=" * 80)
+    print(f"{Color.BOLD_CYAN}{'=' * 80}{Color.RESET}")
+    print(f"      {Color.BOLD_CYAN}FLATMATCH - SMART APARTMENT & ROOMMATE FINDER (CLI){Color.RESET}")
+    print(f"{Color.BOLD_CYAN}{'=' * 80}{Color.RESET}")
     print("Welcome! Let's find your ideal shared apartment based on real commute times")
     print("and lifestyle compatibility.")
-    print("-" * 80)
+    print(f"{Color.GRAY}{'-' * 80}{Color.RESET}")
 
     # --------------------------------------------------------------------------
     # Step 1: User Profile & Budget
     # --------------------------------------------------------------------------
-    print("\n[STEP 1: PERSONAL DETAILS & BUDGET]")
+    print(f"\n{Color.BOLD_BLUE}[STEP 1: PERSONAL DETAILS & BUDGET]{Color.RESET}")
     name = ""
     while not name:
         name = get_input("Enter your full name")
         if not name:
-            print("  [!] Name cannot be blank.")
+            print(f"  {Color.RED}[!] Name cannot be blank.{Color.RESET}")
 
     age = get_int_input("Enter your age", default=24, min_val=18, max_val=120)
     phone = get_input("Enter your contact phone", default="050-1234567")
@@ -193,15 +212,15 @@ def run_interactive_session():
     # --------------------------------------------------------------------------
     # Step 2: Workplace / Study Destination & Max Commute
     # --------------------------------------------------------------------------
-    print("\n[STEP 2: DESTINATION & COMMUTE GOAL]")
+    print(f"\n{Color.BOLD_BLUE}[STEP 2: DESTINATION & COMMUTE GOAL]{Color.RESET}")
     destination = get_destination_input()
     max_commute = get_float_input("Enter your maximum acceptable commute time (minutes)", default=35.0, min_val=5.0)
 
     # --------------------------------------------------------------------------
     # Step 3: Lifestyle & Compatibility Preferences
     # --------------------------------------------------------------------------
-    print("\n[STEP 3: LIFESTYLE & COMPATIBILITY PREFERENCES]")
-    print("Press [Enter] to accept the recommended default values:")
+    print(f"\n{Color.BOLD_BLUE}[STEP 3: LIFESTYLE & COMPATIBILITY PREFERENCES]{Color.RESET}")
+    print(f"{Color.GRAY}Press [Enter] to accept the recommended default values:{Color.RESET}")
     is_smoker = get_bool_input("Do you smoke (or allow smoking in the apartment)?", default=False)
     allows_pets = get_bool_input("Do you have (or love living with) pets?", default=True)
     cleanliness = get_int_input("Cleanliness standard (1=relaxed, 5=spotless)", default=4, min_val=1, max_val=5)
@@ -228,34 +247,34 @@ def run_interactive_session():
         preferences=seeker_prefs,
     )
 
-    print("\n" + "=" * 80)
-    print("  USER REGISTERED SUCCESSFULLY")
-    print(f"  Seeker: {seeker.name} (Age: {seeker.age}, Phone: {seeker.phone})")
-    print(f"  Target: '{seeker.destination_address}' (Max Commute: {seeker.max_commute_minutes:.0f} min)")
-    print(f"  Budget Cap: {seeker.max_budget:,.0f} NIS | Pets: {seeker_prefs.allows_pets} | Smoking: {seeker_prefs.is_smoker}")
+    print(f"\n{Color.BOLD_GREEN}{'=' * 80}{Color.RESET}")
+    print(f"  {Color.BOLD_GREEN}USER REGISTERED SUCCESSFULLY{Color.RESET}")
+    print(f"  Seeker: {Color.BOLD}{seeker.name}{Color.RESET} (Age: {seeker.age}, Phone: {Color.CYAN}{seeker.phone}{Color.RESET})")
+    print(f"  Target: '{Color.BOLD}{seeker.destination_address}{Color.RESET}' (Max Commute: {Color.YELLOW}{seeker.max_commute_minutes:.0f} min{Color.RESET})")
+    print(f"  Budget Cap: {Color.GREEN}{seeker.max_budget:,.0f} NIS{Color.RESET} | Pets: {seeker_prefs.allows_pets} | Smoking: {seeker_prefs.is_smoker}")
     print(f"  Kashrut: {seeker_prefs.kashrut_level} | Shabbat: {seeker_prefs.shabbat_observant} | Cleanliness: {seeker_prefs.cleanliness}/5")
-    print("=" * 80)
+    print(f"{Color.BOLD_GREEN}{'=' * 80}{Color.RESET}")
 
     # --------------------------------------------------------------------------
     # Step 4: Routing & Commute Analysis
     # --------------------------------------------------------------------------
-    print("\n[PROCESSING COMMUTE METRICS VIA EXTERNAL ROUTING API...]")
+    print(f"\n{Color.BOLD_BLUE}[PROCESSING COMMUTE METRICS VIA EXTERNAL ROUTING API...]{Color.RESET}")
 
     # 4.1 Address Normalization
     normalized_dest = AddressNormalizer.normalize(seeker.destination_address)
-    print(f"  [1/3] Normalizing destination: '{seeker.destination_address}' -> '{normalized_dest}'")
+    print(f"  {Color.CYAN}[1/3]{Color.RESET} Normalizing destination: '{seeker.destination_address}' -> '{Color.BOLD}{normalized_dest}{Color.RESET}'")
 
     # 4.2 Geocoding
     use_mock = "--mock" in sys.argv
     geocoder = NominatimGeocodingClient(use_live_network=not use_mock)
     dest_coords = geocoder.geocode(normalized_dest)
-    print(f"  [2/3] Geographic coordinates resolved: lon={dest_coords[0]:.4f}, lat={dest_coords[1]:.4f}")
+    print(f"  {Color.CYAN}[2/3]{Color.RESET} Geographic coordinates resolved: {Color.YELLOW}lon={dest_coords[0]:.4f}, lat={dest_coords[1]:.4f}{Color.RESET}")
 
     # 4.3 Load Available Apartments
     data_path = os.path.join(os.path.dirname(__file__), "data", "sample_data.jsonl")
     repo = FlatMatchRepository(data_path)
     available_owners: List[RoommateSeeker] = repo.get_roommate_seekers()
-    print(f"  [3/3] Querying OSRM Route Service for {len(available_owners)} candidate apartments in database...")
+    print(f"  {Color.CYAN}[3/3]{Color.RESET} Querying OSRM Route Service for {Color.BOLD}{len(available_owners)}{Color.RESET} candidate apartments in database...")
 
     commute_client = CommuteAPIClient(max_retries=3)
 
@@ -331,40 +350,43 @@ def run_interactive_session():
     # --------------------------------------------------------------------------
     # Step 5: Results Display
     # --------------------------------------------------------------------------
-    print("\n" + "=" * 80)
-    print(f"  MATCH RESULTS FOR {seeker.name.upper()} (Target: {normalized_dest})")
-    print(f"  Budget Ceiling: {seeker.max_budget:,.0f} NIS | Max Travel Time: {seeker.max_commute_minutes:.0f} minutes")
-    print("=" * 80)
+    print(f"\n{Color.BOLD_CYAN}{'=' * 80}{Color.RESET}")
+    print(f"  {Color.BOLD_CYAN}MATCH RESULTS FOR {seeker.name.upper()} (Target: {normalized_dest}){Color.RESET}")
+    print(f"  Budget Ceiling: {Color.GREEN}{seeker.max_budget:,.0f} NIS{Color.RESET} | Max Travel Time: {Color.YELLOW}{seeker.max_commute_minutes:.0f} minutes{Color.RESET}")
+    print(f"{Color.BOLD_CYAN}{'=' * 80}{Color.RESET}")
 
     if matching_apartments:
-        print(f"\nSUCCESS: Found {len(matching_apartments)} relevant apartment(s) within your commute & budget limits:\n")
+        print(f"\n{Color.BOLD_GREEN}SUCCESS:{Color.RESET} Found {Color.BOLD}{len(matching_apartments)}{Color.RESET} relevant apartment(s) within your commute & budget limits:\n")
         for idx, match in enumerate(matching_apartments, start=1):
             owner = match["owner"]
             apt = match["apt"]
-            print(f"#{idx} [{match['city'].upper()}] - Host: {owner.name} (Phone: {owner.phone})")
+            verified_tag = f"{Color.GREEN}[Verified: True]{Color.RESET}" if match["is_verified"] else f"{Color.GRAY}[Fallback]{Color.RESET}"
+            savings_tag = f"{Color.GREEN}+{match['savings']:,.0f} NIS{Color.RESET}" if match['savings'] >= 0 else f"{Color.RED}{match['savings']:,.0f} NIS{Color.RESET}"
+            
+            print(f"{Color.BOLD_YELLOW}#{idx}{Color.RESET} [{Color.BOLD_CYAN}{match['city'].upper()}{Color.RESET}] - Host: {Color.BOLD}{owner.name}{Color.RESET} (Phone: {Color.CYAN}{owner.phone}{Color.RESET})")
             print(f"   Address:          {match['address']}")
-            print(f"   Rent per Room:    {match['rent_per_room']:,.0f} NIS / month (Savings: {match['savings']:,.0f} NIS under your budget)")
+            print(f"   Rent per Room:    {Color.BOLD}{match['rent_per_room']:,.0f} NIS{Color.RESET} / month (Savings: {savings_tag} under your budget)")
             print(f"   Total Flat Rent:  {match['total_rent']:,.0f} NIS for {match['rooms']} rooms")
-            print(f"   Commute Time:     {match['duration_minutes']:.1f} minutes ({match['distance_km']:.1f} km drive) [Verified: {match['is_verified']}]")
-            print(f"   Apartment Perks:  {', '.join(match['amenities']) if match['amenities'] else 'Standard amenities'}")
+            print(f"   Commute Time:     {Color.BOLD_YELLOW}{match['duration_minutes']:.1f} minutes{Color.RESET} ({match['distance_km']:.1f} km drive) {verified_tag}")
+            print(f"   Apartment Perks:  {Color.CYAN}{', '.join(match['amenities']) if match['amenities'] else 'Standard amenities'}{Color.RESET}")
             print(f"   Host Lifestyle:   Cleanliness {owner.preferences.cleanliness}/5, Pets: {owner.preferences.allows_pets}, Smoking: {owner.preferences.is_smoker}, Kashrut: {owner.preferences.kashrut_level}")
-            print("   " + "-" * 74)
+            print(f"   {Color.GRAY}{'-' * 74}{Color.RESET}")
     else:
-        print("\nNo apartments currently match all your criteria (budget, lifestyle, and commute threshold).")
+        print(f"\n{Color.YELLOW}No apartments currently match all your criteria (budget, lifestyle, and commute threshold).{Color.RESET}")
 
     if rejected_apartments:
-        print("\n[FILTERED OUT CANDIDATES]")
+        print(f"\n{Color.GRAY}[FILTERED OUT CANDIDATES]{Color.RESET}")
         for rej in rejected_apartments:
             owner = rej["owner"]
-            print(f"  * {rej['city']} (Host: {owner.name}): Filtered out -> {rej['reason']}")
+            print(f"  {Color.GRAY}* {rej['city']} (Host: {owner.name}): Filtered out ->{Color.RESET} {Color.RED}{rej['reason']}{Color.RESET}")
 
-    print("\n" + "=" * 80)
-    print("  SEARCH SESSION COMPLETED")
-    print("=" * 80)
+    print(f"\n{Color.BOLD_CYAN}{'=' * 80}{Color.RESET}")
+    print(f"  {Color.BOLD_CYAN}SEARCH SESSION COMPLETED{Color.RESET}")
+    print(f"{Color.BOLD_CYAN}{'=' * 80}{Color.RESET}")
 
 
 if __name__ == "__main__":
     try:
         run_interactive_session()
     except KeyboardInterrupt:
-        print("\n\nSession aborted by user. Goodbye!")
+        print(f"\n\n{Color.YELLOW}Session aborted by user. Goodbye!{Color.RESET}")
