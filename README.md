@@ -86,6 +86,7 @@ classDiagram
 ```
 
 - **Inheritance & Polymorphism:** `User` is an Abstract Base Class (`ABC`). `ApartmentSeeker` and `RoommateSeeker` polymorphically implement `get_role_summary()` and `evaluate_dealbreakers()`.
+- **String & Developer Representations:** Every domain model implements `__str__()` for user-friendly text presentation and an unambiguous `__repr__()` for developmental inspection, debugging, and reproducibility.
 - **Composition:** Every `User` contains a `Preferences` instance. `RoommateSeeker` contains an `Apartment` instance, which in turn encapsulates a `set` of amenities.
 - **Validation & Properties:** Protected attributes (`_attribute`) are accessed and validated via `@property` getters and `@setter` decorators, raising clear `ValueError` exceptions on invalid inputs.
 
@@ -129,7 +130,7 @@ classDiagram
 - **AI Source & Documentation:** 20 diverse, realistic synthetic records generated with AI in `data/sample_data.jsonl` (15 apartment seekers and 5 roommate seekers offering apartments). Full prompt, schema constraints, and error corrections are documented in [`AI_USAGE.md`](AI_USAGE.md).
 - **Structure of `data/sample_data.jsonl`:** Formatted strictly as JSON Lines (one JSON object per line) containing fields for `type`, `name`, `age`, unique `phone`, nested `preferences`, and seeker-specific attributes (`max_budget`, `preferred_cities`) or apartment details (`city`, `rent`, `rooms`, `amenities`).
 - **Loading Process into `dict`:** `stream_users_from_jsonl()` streams lines lazily using Python's native file iterator within `with open(..., encoding="utf-8")`. Each line is parsed into a Python `dict` via `json.loads()`. Neither `.read()` nor `.readlines()` is ever used.
-- **Conversion to Domain Objects:** Raw dictionary entries are converted into domain objects via `@classmethod from_dict()` (`ApartmentSeeker.from_dict(record)` or `RoommateSeeker.from_dict(record)`), parsing nested objects (`Preferences`, `Apartment`) and converting list attributes to `set` (for apartment amenities).
+- **Conversion to Domain Objects & Type Validation:** Raw dictionary entries are parsed through `parse_user_record()` and converted into domain objects via `@classmethod from_dict()` (`ApartmentSeeker.from_dict(record)` or `RoommateSeeker.from_dict(record)`). Explicit `type` values are strictly verified against `VALID_USER_TYPES`, immediately rejecting unknown or malformed user types with clear `ValueError` exceptions.
 - **Data Validation & Verification:** Field values are rigorously validated during instantiation via `@property` setters (checking valid ages $18 \le \text{age} \le 120$, positive budgets/rents, supported cities, and cleanliness $1 \dots 5$). `FlatMatchRepository` ensures phone number uniqueness ($O(1)$ duplicate prevention).
 
 ---

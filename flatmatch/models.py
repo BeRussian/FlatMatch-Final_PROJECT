@@ -114,6 +114,13 @@ class Preferences:
             return True
         return False
 
+    def __repr__(self) -> str:
+        return (
+            f"Preferences(cleanliness={self._cleanliness!r}, allows_pets={self._allows_pets!r}, "
+            f"is_smoker={self._is_smoker!r}, sleep_schedule={self._sleep_schedule!r}, "
+            f"kashrut_level={self._kashrut_level!r}, shabbat_observant={self._shabbat_observant!r})"
+        )
+
     def __str__(self) -> str:
         return (
             f"Preferences(cleanliness={self.cleanliness}, allows_pets={self.allows_pets}, "
@@ -231,6 +238,12 @@ class Apartment:
             amenities=amenities_set
         )
 
+    def __repr__(self) -> str:
+        return (
+            f"Apartment(city={self._city!r}, rent={self._rent!r}, "
+            f"rooms={self._rooms!r}, amenities={self._amenities!r})"
+        )
+
     def __str__(self) -> str:
         amenities_str = ", ".join(self._amenities) if len(self._amenities) > 0 else "None"
         return f"Apartment(city='{self._city}', rent={self._rent}, rooms={self._rooms}, avg_per_room={self.rent_per_room}, amenities=[{amenities_str}])"
@@ -293,6 +306,9 @@ class User(ABC):
         if not isinstance(value, Preferences):
             raise ValueError("preferences must be an instance of Preferences")
         self._preferences = value
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(name={self._name!r}, age={self._age!r}, phone={self._phone!r})"
 
     def __str__(self):
         return f"User: {self._name}, Age: {self._age}, Phone: {self._phone}"
@@ -374,6 +390,16 @@ class ApartmentSeeker(User):
             preferences_OBJ=pref_obj
         )
 
+    def __repr__(self) -> str:
+        return (
+            f"ApartmentSeeker(name={self._name!r}, age={self._age!r}, phone={self._phone!r}, "
+            f"max_budget={self._max_budget!r}, preferred_cities={self._preferred_cities!r}, "
+            f"preferences_OBJ={self._preferences!r})"
+        )
+
+    def __str__(self) -> str:
+        return self.get_role_summary()
+
     def __lt__(self, other):
         if not isinstance(other, ApartmentSeeker):
             return NotImplemented
@@ -431,6 +457,15 @@ class RoommateSeeker(User):
         if not isinstance(value, Apartment):
             raise ValueError("apartment must be an instance of Apartment")
         self._apartment = value
+
+    def __repr__(self) -> str:
+        return (
+            f"RoommateSeeker(name={self._name!r}, age={self._age!r}, phone={self._phone!r}, "
+            f"apartment={self._apartment!r}, preferences_OBJ={self._preferences!r})"
+        )
+
+    def __str__(self) -> str:
+        return self.get_role_summary()
 
     def get_role_summary(self) -> str:
         return f"Roommate Seeker: {self.name}, Age: {self.age}, Offering: {self._apartment}"

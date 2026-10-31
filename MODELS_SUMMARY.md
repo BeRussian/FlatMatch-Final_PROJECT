@@ -23,6 +23,7 @@ classDiagram
         -bool _shabbat_observant
         +has_conflict(other) bool
         +__str__() str
+        +__repr__() str
     }
 
     class Apartment {
@@ -36,6 +37,7 @@ classDiagram
         +remove_amenity(amenity)
         +has_amenity(amenity) bool
         +__str__() str
+        +__repr__() str
     }
 
     class User {
@@ -47,6 +49,7 @@ classDiagram
         +get_role_summary()* str
         +evaluate_dealbreakers(other)* bool
         +__str__() str
+        +__repr__() str
     }
 
     class ApartmentSeeker {
@@ -56,12 +59,16 @@ classDiagram
         +__lt__(other) bool
         +get_role_summary() str
         +evaluate_dealbreakers(other) bool
+        +__str__() str
+        +__repr__() str
     }
 
     class RoommateSeeker {
         -Apartment _apartment
         +get_role_summary() str
         +evaluate_dealbreakers(other) bool
+        +__str__() str
+        +__repr__() str
     }
 
     User <|-- ApartmentSeeker : Inheritance
@@ -101,7 +108,8 @@ flowchart TD
 * **מתודות עיקריות (Methods):**
   * `__init__(...)`: אתחול כל המאפיינים עם ערכי ברירת מחדל חכמים ואימות תקינות מלא.
   * `has_conflict(other)`: בודקת האם קיים קונפליקט מוחלט בין שני משתמשים (עישון הדדי, גידול בעלי חיים).
-  * `__str__()`: מחזירה תיאור טקסטואלי נוח וקריא של ההעדפות.
+  * `__str__()`: מחזירה תיאור טקסטואלי נוח וקריא של ההעדפות למשתמש.
+  * `__repr__()`: ייצוג מפתחים חד-משמעי של מצב המופע (שדות ברירת מחדל וערכים מותאמים) עבור דיבאגינג ולוגים.
   * `Properties & Setters`: כל התכונות מוגנות עם בדיקות טיפוסים וערכים חוקיים (זורקות `ValueError` במקרה של קלט שגוי).
 
 ---
@@ -121,6 +129,7 @@ flowchart TD
   * `has_amenity(amenity: str) -> bool`: בדיקת קיום מתקן בקבוצה באמצעות `in`.
   * `is_valid_city(city: str) -> bool` (**Static Method**): בדיקת עזר סטטית המוודאת שהעיר אינה ריקה ומופיעה ברשימת הערים הנתמכות (`SUPPORTED_CITIES`).
   * `__str__()`: ייצוג ידידותי של הדירה, מחירה, חלוקת החדרים ורשימת המתקנים.
+  * `__repr__()`: ייצוג מפורט עבור סביבת הפיתוח והבדיקות עם עיר, מחיר, חדרים ומבנה קבוצת המתקנים המלא.
 
 ---
 
@@ -136,6 +145,7 @@ flowchart TD
 * **מתודות עיקריות (Methods):**
   * `__init__(...)`: בנאי מאמת המגדיר שדות בסיס ומאתחל העדפות ברירת מחדל במידת הצורך.
   * `__str__()`: מחזירה תיאור תמציתי של פרטי המשתמש.
+  * `__repr__()`: ייצוג מפתחים בסיסי דינמי לפי שם המחלקה היורשת.
 * **מתודות מופשטות (Abstract Methods):**
   * `get_role_summary()` (**`@abstractmethod`**): חוזה המחייב כל תפקיד להחזיר תיאור ייעודי של פעילותו.
   * `evaluate_dealbreakers(other)` (**`@abstractmethod`**): חוזה המחייב כל תפקיד לממש בדיקת תנאי סף ופסילות מול מועמד אחר.
@@ -151,6 +161,9 @@ flowchart TD
   * `from_dict(cls, data: dict)`: יצירת אובייקט ישירות מתוך מבנה נתונים מילוני (`dict`), כולל טיפול אוטומטי בהעדפות.
 * **השוואה עתידית מהירה:**
   * `__lt__(self, other)`: השוואת מחפשי דירות לפי גובה התקציב (`max_budget`), המאפשרת מיון ישיר ושימוש בתור עדיפויות (`heapq`).
+* **ייצוג טקסטואלי ומצב פיתוח:**
+  * `__str__()`: מחזירה תיאור תפקיד מפורט וקריא למשתמש.
+  * `__repr__()`: הצגת מצב מפתח מלא (שם, גיל, טלפון, תקציב מקסימלי, רשימת ערים מועדפות וייצוג ההעדפות).
 * **מימוש מתודות אבסטרקטיות (Polymorphism):**
   * `get_role_summary()`: מחזירה פירוט תפקיד הכולל את שם המחפש, גילו, תקרת התקציב והערים המבוקשות.
   * `evaluate_dealbreakers(other)`: בודקת האם הדירה המוצעת חורגת מתקציב המשתמש, האם העיר אינה ברשימת המבוקשות, או שיש סתירת עישון/חיות.
@@ -161,6 +174,9 @@ flowchart TD
 * **מהות המחלקה:** יורשת מ-`User` ומייצגת בעל חוזה המחפש שותף לחדר פנוי בדירתו.
 * **הרכבה (Composition):**
   * מכילה אובייקט מסוג `Apartment` בתכונה הפרטית `_apartment`.
+* **ייצוג טקסטואלי ומצב פיתוח:**
+  * `__str__()`: מחזירה תיאור תפקיד מפורט וקריא למשתמש.
+  * `__repr__()`: הצגת מצב מפתח מלא (שם, גיל, טלפון, ייצוג אובייקט הדירה המלא וייצוג ההעדפות).
 * **מימוש מתודות אבסטרקטיות (Polymorphism):**
   * `get_role_summary()`: מחזירה תיאור תפקיד הכולל את פרטי המציע ופרטי הדירה המוצעת.
   * `evaluate_dealbreakers(other)`: בודקת האם המועמד הפוטנציאלי מסוגל לעמוד בשכר הדירה הנדרש (`max_budget >= rent`) והאם קיימת סתירת הרגלי חיים (עישון/חיות).
@@ -171,10 +187,10 @@ flowchart TD
 
 | שם המחלקה | קשר במערכת | תכונות מרכזיות | מתודות מרכזיות | מנגנוני OOP מיושמים |
 | :--- | :--- | :--- | :--- | :--- |
-| **`Preferences`** | קומפוזיציה בתוך `User` | ניקיון, עישון, חיות, שינה, כשרות, שבת | `has_conflict`, `__str__` | Encapsulation, Validation, Properties |
-| **`Apartment`** | קומפוזיציה בתוך `RoommateSeeker` | עיר, שכ"ד, חדרים, אוסף מתקנים (`set`) | `add_amenity`, `remove_amenity`, `has_amenity`, `is_valid_city` | Computed Property, Static Method, Set Collection |
-| **`User`** | מחלקת בסיס מופשטת | שם, גיל, טלפון, אובייקט `Preferences` | `get_role_summary`, `evaluate_dealbreakers` | Abstract Base Class (ABC), Abstract Methods, Encapsulation |
-| **`ApartmentSeeker`** | יורשת מ-`User` | תקציב מקסימלי, רשימת ערים מועדפות | `from_dict`, `__lt__`, דריסת מתודות אבסטרקטיות | Inheritance, Polymorphism, Class Method, Operator Overloading |
-| **`RoommateSeeker`** | יורשת מ-`User` | אובייקט `Apartment` | דריסת מתודות אבסטרקטיות | Inheritance, Composition, Polymorphism |
+| **`Preferences`** | קומפוזיציה בתוך `User` | ניקיון, עישון, חיות, שינה, כשרות, שבת | `has_conflict`, `__str__`, `__repr__` | Encapsulation, Validation, Properties, Developer Repr |
+| **`Apartment`** | קומפוזיציה בתוך `RoommateSeeker` | עיר, שכ"ד, חדרים, אוסף מתקנים (`set`) | `add_amenity`, `remove_amenity`, `has_amenity`, `is_valid_city`, `__repr__` | Computed Property, Static Method, Set Collection, Developer Repr |
+| **`User`** | מחלקת בסיס מופשטת | שם, גיל, טלפון, אובייקט `Preferences` | `get_role_summary`, `evaluate_dealbreakers`, `__repr__` | Abstract Base Class (ABC), Abstract Methods, Encapsulation |
+| **`ApartmentSeeker`** | יורשת מ-`User` | תקציב מקסימלי, רשימת ערים מועדפות | `from_dict`, `__lt__`, `__str__`, `__repr__`, דריסת מתודות אבסטרקטיות | Inheritance, Polymorphism, Class Method, Operator Overloading, Developer Repr |
+| **`RoommateSeeker`** | יורשת מ-`User` | אובייקט `Apartment` | `__str__`, `__repr__`, דריסת מתודות אבסטרקטיות | Inheritance, Composition, Polymorphism, Developer Repr |
 
 </div>

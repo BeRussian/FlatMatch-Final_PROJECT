@@ -9,14 +9,18 @@ Runs and verifies all components of Part D:
 """
 
 import os
-from flatmatch.models import Apartment, ApartmentSeeker, Preferences
+from flatmatch.models import Apartment, ApartmentSeeker, RoommateSeeker, Preferences
 from flatmatch.iterators import (
     SeekerCollection,
     SeekerIterator,
     stream_budget_candidates,
     build_lazy_seeker_pipeline
 )
-from flatmatch.repository import stream_users_from_jsonl, FlatMatchRepository
+from flatmatch.repository import (
+    stream_users_from_jsonl,
+    FlatMatchRepository,
+    parse_user_record
+)
 from flatmatch.context_managers import SearchSessionContext, ApartmentHoldContext
 
 
@@ -141,6 +145,104 @@ def test_context_managers():
     print(" -> Context managers test passed.")
 
 
+def test_model_repr_methods():
+    print("Testing Domain Models __repr__ methods...")
+    pref = Preferences(cleanliness=4, allows_pets=True, is_smoker=False)
+    pref_repr = repr(pref)
+    assert "Preferences(" in pref_repr
+    assert "cleanliness=4" in pref_repr
+    assert "allows_pets=True" in pref_repr
+
+    apt = Apartment("Tel Aviv", 3500.0, rooms=2, amenities={"Balcony", "Elevator"})
+    apt_repr = repr(apt)
+    assert "Apartment(" in apt_repr
+    assert "city='Tel Aviv'" in apt_repr
+    assert "rent=3500.0" in apt_repr
+
+    seeker = ApartmentSeeker("Dan", 25, "050-1000001", 3500.0, ["Tel Aviv"], pref)
+    seeker_repr = repr(seeker)
+    assert "ApartmentSeeker(" in seeker_repr
+    assert "name='Dan'" in seeker_repr
+    assert "max_budget=3500.0" in seeker_repr
+
+    owner = RoommateSeeker("Dor", 27, "052-1000001", apt, pref)
+    owner_repr = repr(owner)
+    assert "RoommateSeeker(" in owner_repr
+    assert "name='Dor'" in owner_repr
+    assert "apartment=Apartment(" in owner_repr
+
+    print(" -> Domain models __repr__ test passed.")
+
+
+def test_parse_user_record_validation():
+    print("Testing parse_user_record schema and unknown user type validation...")
+    # 1. Valid record
+    valid_seeker = {
+        "name": "Sarah",
+        "age": 24,
+        "phone": "050-9999001",
+        "type": "apartment_seeker",
+        "max_budget": 3000,
+        "preferred_cities": ["Tel Aviv"]
+    }
+    user1 = parse_user_record(valid_seeker)
+    assert isinstance(user1, ApartmentSeeker)
+
+    # 2. Unknown user type with apartment field
+    invalid_type_record = {
+        "name": "Dana",
+        "age": 26,
+        "phone": "050-9999002",
+        "type": "landlord",
+        "apartment": {"city": "Tel Aviv", "rent": 3200}
+    }
+    rejected_unknown = False
+    try:
+        parse_user_record(invalid_type_record)
+    except ValueError as e:
+        assert "Unknown or unsupported user type 'landlord'" in str(e)
+        rejected_unknown = True
+    assert rejected_unknown, "Failed to reject unknown user type 'landlord'"
+
+    # 3. Unknown user type with budget field
+    invalid_budget_record = {
+        "name": "David",
+        "age": 28,
+        "phone": "050-9999003",
+        "type": "investor",
+        "max_budget": 5000,
+        "preferred_cities": ["Tel Aviv"]
+    }
+    rejected_investor = False
+    try:
+        parse_user_record(invalid_budget_record)
+    except ValueError as e:
+        assert "Unknown or unsupported user type 'investor'" in str(e)
+        rejected_investor = True
+    assert rejected_investor, "Failed to reject unknown user type 'investor'"
+
+    # 4. Non-dict record
+    try:
+        parse_user_record("not a dict")
+        assert False, "Should raise TypeError for non-dict record"
+    except TypeError:
+        pass
+
+    # 5. Missing required base field
+    missing_phone_record = {
+        "name": "No Phone",
+        "age": 25,
+        "type": "apartment_seeker"
+    }
+    try:
+        parse_user_record(missing_phone_record)
+        assert False, "Should raise ValueError for missing required field"
+    except ValueError:
+        pass
+
+    print(" -> parse_user_record validation test passed.")
+
+
 if __name__ == "__main__":
     print("==================================================")
     print("RUNNING ALL PART D VERIFICATION TESTS")
@@ -150,6 +252,8 @@ if __name__ == "__main__":
     test_lazy_pipeline()
     test_streaming_and_repository()
     test_context_managers()
+    test_model_repr_methods()
+    test_parse_user_record_validation()
     print("==================================================")
     print("ALL PART D TESTS PASSED WITH 100% SUCCESS!")
     print("==================================================")

@@ -14,10 +14,19 @@ except ImportError:
     from .models import User, ApartmentSeeker, RoommateSeeker, Apartment, Preferences
 
 
+VALID_USER_TYPES = {"apartment_seeker", "roommate_seeker"}
+
+
 def parse_user_record(data: dict) -> User:
     """
     Validates dictionary structure and instantiates the appropriate domain model
     using the corresponding @classmethod from_dict.
+
+    Validates:
+    - data is a dict.
+    - essential base fields ('name', 'age', 'phone') are present.
+    - if 'type' is present, it must be a valid known user type ('apartment_seeker' or 'roommate_seeker').
+    - if 'type' is missing, safely infers the type based on unambiguous schema keys.
     """
     if not isinstance(data, dict):
         raise TypeError(f"Record must be a dict, got {type(data).__name__}")
@@ -28,14 +37,35 @@ def parse_user_record(data: dict) -> User:
         if field not in data:
             raise ValueError(f"Record is missing required field '{field}': {data}")
 
-    user_type = data.get("type", "").strip().lower()
+    # Validate user type if explicitly supplied
+    raw_type = data.get("type")
+    if raw_type is not None:
+        if not isinstance(raw_type, str):
+            raise TypeError(f"Field 'type' must be a str, got {type(raw_type).__name__}")
+        user_type = raw_type.strip().lower()
+        if user_type not in VALID_USER_TYPES:
+            raise ValueError(
+                f"Unknown or unsupported user type '{raw_type}'. "
+                f"Supported types are: {', '.join(sorted(VALID_USER_TYPES))}."
+            )
+        if user_type == "roommate_seeker":
+            return RoommateSeeker.from_dict(data)
+        elif user_type == "apartment_seeker":
+            return ApartmentSeeker.from_dict(data)
 
-    if user_type == "roommate_seeker" or "apartment" in data:
+    # If 'type' is omitted, perform unambiguous structural inference
+    has_apt = "apartment" in data
+    has_budget = "max_budget" in data
+
+    if has_apt and not has_budget:
         return RoommateSeeker.from_dict(data)
-    elif user_type == "apartment_seeker" or "max_budget" in data:
+    elif has_budget and not has_apt:
         return ApartmentSeeker.from_dict(data)
     else:
-        raise ValueError(f"Unable to determine user type for record with phone '{data.get('phone')}'.")
+        raise ValueError(
+            f"Unable to determine user type for record with phone '{data.get('phone')}'. "
+            f"Expected either explicit 'type' in {sorted(VALID_USER_TYPES)} or distinct schema keys."
+        )
 
 
 def stream_users_from_jsonl(filepath: str):
@@ -62,7 +92,10 @@ def stream_users_from_jsonl(filepath: str):
             except json.JSONDecodeError as err:
                 raise ValueError(f"Line {line_number}: Malformed JSON syntax: {err}") from err
 
-            user_obj = parse_user_record(record_dict)
+            try:
+                user_obj = parse_user_record(record_dict)
+            except (ValueError, TypeError) as err:
+                raise ValueError(f"Line {line_number}: Failed to parse user record: {err}") from err
             yield user_obj
 
 
