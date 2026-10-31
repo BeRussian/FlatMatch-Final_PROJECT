@@ -275,4 +275,9 @@ Below is the verified Git log output demonstrating the modular branching strateg
   - **מבנה המענה:** אובייקט JSON הכולל `code: "Ok"` ומערך `routes` המכיל שדות מספריים `distance` (במטרים) ו-`duration` (בשניות).
   - **מיפוי לאובייקט מערכת:** המידע מומר לאובייקט `CommuteMetrics(origin_city, destination_city, distance_km, duration_minutes, is_verified)` שבו המרחק מומר לק"מ וזמן הנסיעה לדקות.
   - **שימוש עסקי במערכת:** משמש ב-`services.py` לשקלול ציון התאמה באסטרטגיית הנסיעות, לפסילת דירות שחורגות מ-`max_commute_minutes` (ברירת מחדל: 45 דקות), לעדכון סטטוס תת-המערכת (`LeaseInspectionSubsystem`) ולהפקת מדדי דוח עסקי משולב.
+- **התנהגות המערכת בכשל שירות חיצוני או מידע לא תקין (Fault Tolerance & Fallback):**
+  - **ארבע חריגות מובחנות ב-`api_client.py`:** המערכת מגדירה 4 סוגי שגיאות ייעודיות: `APIConnectionError` (כשל תקשורת המבצע Retry עד 3 פעמים), `APIHTTPError` (שגיאת HTTP מ-`raise_for_status()`), `APIResponseFormatError` (קובץ JSON לא תקין), ו-`APIDataValidationError` (נתונים לא תקינים או חסרים במענה).
+  - **מצב גיבוי מבוקר (Graceful Fallback) ב-`services.py`:** בעת תפיסת חריגת API מתועדת אזהרה בלוג, ונוצר אובייקט גיבוי בטוח: `CommuteMetrics(..., distance_km=0.0, duration_minutes=0.0, is_verified=False)` עם סטטוס `"FALLBACK_UNVERIFIED"`.
+  - **מניעת אישור שגוי בתת-המערכת:** תת-המערכת `LeaseInspectionSubsystem` מזהה שהמידע אינו מאומת (`is_verified=False`) ומסמנת סטטוס `"PENDING_MANUAL_VERIFICATION"`. בכך מובטח שהמערכת אינה קורסת ואינה מאשרת חוזה דיור באופן שגוי.
+
 

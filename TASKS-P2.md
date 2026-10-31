@@ -83,7 +83,7 @@ git commit -m "chore(config): add stage 2 dependencies, env example, and logging
     - כתובת: `GET https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false`
   - **המידע המתקבל:** JSON המכיל `code` ורשימת `routes` עם שדות `distance` (במטרים) ו-`duration` (בשניות).
   - **שימוש במערכת:** המרה לאובייקט מערכת `CommuteMetrics(origin_city, destination_city, distance_km, duration_minutes, is_verified)`. משמש ב-`services.py` לחישוב ציון התאמה, פסילת דירות שחורגות מזמן נסיעה מקסימלי (`max_commute_minutes`), ועדכון תת-המערכת והדוח.
-- [ ] **1.3 התנהגות המערכת בכשל שירות חיצוני או מידע לא תקין:**
+- [x] **1.3 התנהגות המערכת בכשל שירות חיצוני או מידע לא תקין:**
   - `api_client.py` זורק חריגה ספציפית ומתעד בלוג לאחר מיצוי ניסיונות ה-Retry (בכשל תקשורת) או מיד (בשגיאת HTTP / JSON / מבנה נתונים).
   - `services.py` תופס את החריגה ועובר ל**מצב גיבוי מבוקר (Graceful Fallback)**: מחזיר `CommuteMetrics(..., distance_km=0.0, duration_minutes=0.0, is_verified=False)` ומסמן סטטוס `"FALLBACK_UNVERIFIED"` (ותת-המערכת מסמנת `"PENDING_MANUAL_VERIFICATION"`), כך שהמערכת לא קורסת ולא מאשרת חוזה שגוי.
 - [ ] **1.4 פעולות עצמאיות בחפיפה (Async) והמשאב המשותף (Threads + Lock):**
