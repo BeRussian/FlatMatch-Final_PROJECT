@@ -21,6 +21,11 @@ from flatmatch.geocoding import NominatimGeocodingClient
 
 logger = get_logger("services")
 
+# Business rules constants for commute budget adjustments
+FREE_COMMUTE_THRESHOLD_MINUTES: float = 20.0
+COMMUTE_PENALTY_PER_MINUTE_ILS: float = 15.0
+
+
 
 class MatchEvaluationResult:
     """
@@ -202,6 +207,16 @@ class FlatMatchService:
 def calculate_commute_adjusted_budget(base_budget: float, commute: CommuteMetrics) -> float:
     """
     TDD Feature: Adjusts seeker's maximum budget ceiling based on daily commute duration.
+
+    Business Rules:
+    - Commutes under or equal to FREE_COMMUTE_THRESHOLD_MINUTES (20.0 min) incur 0 deduction.
+    - Each minute beyond threshold penalizes budget by COMMUTE_PENALTY_PER_MINUTE_ILS (15.0 ILS).
+    - Unverified commutes incur no penalty to protect seekers from unverified calculations.
+    - The adjusted budget ceiling cannot drop below 0.0 ILS.
+
+    Raises:
+    - TypeError: if commute is not a CommuteMetrics instance.
+    - ValueError: if base_budget is negative.
     """
     if not isinstance(commute, CommuteMetrics):
         raise TypeError(f"Expected CommuteMetrics, got {type(commute).__name__}")
@@ -211,10 +226,12 @@ def calculate_commute_adjusted_budget(base_budget: float, commute: CommuteMetric
     if not commute.is_verified:
         return float(base_budget)
 
-    if commute.duration_minutes <= 20.0:
+    excess_minutes = commute.duration_minutes - FREE_COMMUTE_THRESHOLD_MINUTES
+    if excess_minutes <= 0.0:
         return float(base_budget)
 
-    penalty = (commute.duration_minutes - 20.0) * 15.0
+    penalty = excess_minutes * COMMUTE_PENALTY_PER_MINUTE_ILS
     adjusted = max(0.0, float(base_budget) - penalty)
     return round(adjusted, 2)
+
 
