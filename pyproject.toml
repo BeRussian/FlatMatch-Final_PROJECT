@@ -19,3 +19,7 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["flatmatch*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
