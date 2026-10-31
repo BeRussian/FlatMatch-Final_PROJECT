@@ -78,7 +78,7 @@ git commit -m "chore(config): add stage 2 dependencies, env example, and logging
 - [x] **1.1 התהליך העסקי המורחב והערך שלו:**
   - הרחבת תהליך סינון ודירוג הדירות של `FlatMatch` משלב 1: מעבר לתקציב, עיר והעדפות סגנון חיים (`Preferences`), המערכת מחשבת כעת את **מרחק הנסיעה וזמן ההגעה (Commute Duration & Distance)** מהדירה של ה-`RoommateSeeker` אל מרכז היעד המבוקש של ה-`ApartmentSeeker`.
   - **הערך העסקי:** מניעת התאמות שבהן הדירה עומדת בתקציב אך דורשת נסיעה יומית ארוכה מדי, ושקלול זמן הנסיעה ישירות בציון ההתאמה (`Match Score`), בסינון המועמדים ובדוח העסקי.
-- [ ] **1.2 המידע מהשירות החיצוני והשימוש בו:**
+- [x] **1.2 המידע מהשירות החיצוני והשימוש בו:**
   - **השירות החיצוני:** **OSRM (Open Source Routing Machine) Public API**
     - כתובת: `GET https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false`
   - **המידע המתקבל:** JSON המכיל `code` ורשימת `routes` עם שדות `distance` (במטרים) ו-`duration` (בשניות).

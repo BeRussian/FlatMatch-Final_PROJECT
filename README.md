@@ -268,4 +268,11 @@ Below is the verified Git log output demonstrating the modular branching strateg
 
 ### 1. מה נוסף בשלב 2? (ההרחבה העסקית והערך העסקי)
 - **ההרחבה העסקית (Commute Distance & Duration):** הרחבת תהליך סינון ודירוג הדירות של FlatMatch משלב 1. מעבר לתקציב, עיר והעדפות סגנון חיים (`Preferences`), המערכת מחשבת כעת את **מרחק הנסיעה וזמן ההגעה** מהדירה המוצעת על ידי ה-`RoommateSeeker` אל מרכז היעד המבוקש של ה-`ApartmentSeeker` באמצעות שירות ניתוב חיצוני.
-- **הערך העסקי:** מניעת התאמות שבהן הדירה עומדת בתקציב אך דורשת נסיעה יומית ארוכה מדי, שקלול זמן הנסיעה ישירות בציון ההתאמה (`Match Score`), סינון מועמדים שחורגים מסף זמן הנסיעה המקסימלי, ושיקוף מלא בדוח העסקי.
+- **הערך העסקי:** מניעת התאמות שבהן הדירה עומדת בתקציב אך דורשת נסיעה יומית ארוכה מדי, שקלול זמן הנסיעה ישירות בציון ההתאמה (`Match Score`), סינון מועמדים שחורגים מסף זמן הנסיעה המקסימלי, ושיקוף מלא בדוח העסקי.
+- **השירות החיצוני והשימוש במידע (OSRM Routing API):**
+  - **השירות שנבחר:** [OSRM (Open Source Routing Machine) Public API](https://project-osrm.org/docs/v5.24.0/api/#route-service)
+  - **מבנה הבקשה:** `GET https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false` (קואורדינטות בפורמט `lon,lat`).
+  - **מבנה המענה:** אובייקט JSON הכולל `code: "Ok"` ומערך `routes` המכיל שדות מספריים `distance` (במטרים) ו-`duration` (בשניות).
+  - **מיפוי לאובייקט מערכת:** המידע מומר לאובייקט `CommuteMetrics(origin_city, destination_city, distance_km, duration_minutes, is_verified)` שבו המרחק מומר לק"מ וזמן הנסיעה לדקות.
+  - **שימוש עסקי במערכת:** משמש ב-`services.py` לשקלול ציון התאמה באסטרטגיית הנסיעות, לפסילת דירות שחורגות מ-`max_commute_minutes` (ברירת מחדל: 45 דקות), לעדכון סטטוס תת-המערכת (`LeaseInspectionSubsystem`) ולהפקת מדדי דוח עסקי משולב.
+
