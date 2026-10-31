@@ -90,6 +90,16 @@ from .api_client import (
     APIResponseFormatError,
     APIDataValidationError,
 )
+from .async_processing import (
+    fetch_apartment_verification_async,
+    collect_verifications_sequential,
+    collect_verifications_concurrent,
+)
+from .threaded_processing import (
+    SharedRoomInventory,
+    UnsafeSharedRoomInventory,
+    run_concurrent_room_bookings,
+)
 
 __all__ = [
     "Preferences",
@@ -149,4 +159,10 @@ __all__ = [
     "APIHTTPError",
     "APIResponseFormatError",
     "APIDataValidationError",
+    "fetch_apartment_verification_async",
+    "collect_verifications_sequential",
+    "collect_verifications_concurrent",
+    "SharedRoomInventory",
+    "UnsafeSharedRoomInventory",
+    "run_concurrent_room_bookings",
 ]
