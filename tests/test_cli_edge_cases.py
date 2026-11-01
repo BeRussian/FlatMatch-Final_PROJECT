@@ -136,3 +136,60 @@ def test_cli_execution_with_malformed_inputs_and_recovery():
     assert "USER REGISTERED SUCCESSFULLY" in res.stdout
     assert "SUCCESS:" in res.stdout and "Found" in res.stdout
 
+
+def test_preferences_three_way_conflict_and_flexible_logic():
+    """Verify 3-way smoking and pets logic: flexible never conflicts with True or False."""
+    p_strict_yes = Preferences(is_smoker=True, allows_pets=True)
+    p_strict_no = Preferences(is_smoker=False, allows_pets=False)
+    p_flexible = Preferences(is_smoker="flexible", allows_pets="flexible")
+
+    # Strict True vs Strict False must conflict
+    assert p_strict_yes.has_conflict(p_strict_no) is True
+    assert p_strict_no.has_conflict(p_strict_yes) is True
+
+    # Same values never conflict
+    assert p_strict_yes.has_conflict(p_strict_yes) is False
+    assert p_strict_no.has_conflict(p_strict_no) is False
+    assert p_flexible.has_conflict(p_flexible) is False
+
+    # Flexible NEVER conflicts with True or False
+    assert p_flexible.has_conflict(p_strict_yes) is False
+    assert p_flexible.has_conflict(p_strict_no) is False
+    assert p_strict_yes.has_conflict(p_flexible) is False
+    assert p_strict_no.has_conflict(p_flexible) is False
+
+
+def test_interactive_host_cli_execution():
+    """Subprocess simulation of interactive_host.py finding compatible seekers."""
+    inputs = (
+        "Sarah Host\n"
+        "29\n"
+        "054-9998877\n"
+        "Tel Aviv\n"
+        "Dizengoff 100\n"
+        "7000\n"             # Total rent (3,500 per room)
+        "2\n"                # 2 rooms
+        "\n\n\n\n\n"         # Amenities defaults
+        "3\n"                # Smoking: 3 (flexible)
+        "3\n"                # Pets: 3 (flexible)
+        "4\n"                # Cleanliness: 4
+        "morning_person\n"
+        "1\n"                # Kashrut: 1 (secular)
+        "n\n"                # Shabbat: n
+    )
+
+    res = subprocess.run(
+        [sys.executable, "interactive_host.py", "--mock"],
+        input=inputs,
+        capture_output=True,
+        text=True,
+        encoding="utf-8"
+    )
+    assert res.returncode == 0
+    assert "HOST APARTMENT REGISTERED SUCCESSFULLY" in res.stdout
+    assert "ROOMMATE MATCH RESULTS FOR HOST SARAH HOST" in res.stdout
+    assert "Found" in res.stdout
+    assert "Match Score:" in res.stdout
+    assert "HOST MATCHING SESSION COMPLETED" in res.stdout
+
+

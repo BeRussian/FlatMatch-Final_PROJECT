@@ -1,5 +1,20 @@
 import re
+from typing import Any
 from abc import ABC, abstractmethod
+
+
+def _normalize_preference_choice(val, name: str):
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        v = val.strip().lower()
+        if v in ("true", "yes", "y", "1"):
+            return True
+        if v in ("false", "no", "n", "0"):
+            return False
+        if v in ("flexible", "dont_care", "neutral", "any", "none"):
+            return "flexible"
+    raise ValueError(f"{name} must be True, False, or 'flexible'")
 
 
 class Preferences:
@@ -9,23 +24,18 @@ class Preferences:
     def __init__(
         self,
         cleanliness: int = 3,  # 1-5 מספרים יותר גבוהים = יותר נקי
-        allows_pets: bool = False,  # האם מותר חיות מחמד
-        is_smoker: bool = False,  # האם מעשן
+        allows_pets: Any = False,  # True (yes), False (no), or 'flexible'
+        is_smoker: Any = False,  # True (yes), False (no), or 'flexible'
         sleep_schedule: str = "flexible",  # flexible, morning_person, night_owl
-        kashrut_level: str = "hiloni",  # hiloni, low, medium, high
+        kashrut_level: str = "hiloni",  # secular, traditional, religious, ultra_orthodox
         shabbat_observant: bool = False,  # שומר שבת
     ):
         if type(cleanliness) != int or not (1 <= cleanliness <= 5):
             raise ValueError("Cleanliness must be between 1 and 5")
         self._cleanliness = cleanliness
 
-        if type(allows_pets) != bool:
-            raise ValueError("allow_pets must be True/False")
-        self._allows_pets = allows_pets
-
-        if type(is_smoker) != bool:
-            raise ValueError("is_smoker must be True/False")
-        self._is_smoker = is_smoker
+        self._allows_pets = _normalize_preference_choice(allows_pets, "allows_pets")
+        self._is_smoker = _normalize_preference_choice(is_smoker, "is_smoker")
 
         if type(sleep_schedule) != str:
             raise ValueError("sleep_schedule must be str")
@@ -60,20 +70,16 @@ class Preferences:
         return self._allows_pets
 
     @allows_pets.setter
-    def allows_pets(self, value: bool):
-        if type(value) != bool:
-            raise ValueError("allow_pets must be True/False")
-        self._allows_pets = value
+    def allows_pets(self, value):
+        self._allows_pets = _normalize_preference_choice(value, "allows_pets")
 
     @property
     def is_smoker(self):
         return self._is_smoker
 
     @is_smoker.setter
-    def is_smoker(self, value: bool):
-        if type(value) != bool:
-            raise ValueError("is_smoker must be True/False")
-        self._is_smoker = value
+    def is_smoker(self, value):
+        self._is_smoker = _normalize_preference_choice(value, "is_smoker")
 
     @property
     def sleep_schedule(self):
@@ -111,11 +117,19 @@ class Preferences:
             raise ValueError("shabbat_observant must be True/False")
         self._shabbat_observant = value
 
+    @staticmethod
+    def _traits_conflict(val1, val2) -> bool:
+        # If either party is flexible, no conflict exists
+        if val1 == "flexible" or val2 == "flexible":
+            return False
+        # Conflict exists only if one strictly requires True and the other strictly requires False
+        return (val1 is True and val2 is False) or (val1 is False and val2 is True)
+
     # פונקציה שמשווה משתמשים ובודקת האם יש פסילה שלא מאפשר לגור ביחד
     def has_conflict(self, other):
-        if self.is_smoker != other.is_smoker:
+        if self._traits_conflict(self.is_smoker, other.is_smoker):
             return True
-        if self.allows_pets != other.allows_pets:
+        if self._traits_conflict(self.allows_pets, other.allows_pets):
             return True
         return False
 

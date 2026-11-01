@@ -129,6 +129,109 @@ def get_kashrut_input() -> str:
     return mapping.get(raw, "secular")
 
 
+def get_smoking_preference(prompt: str = "Smoking policy in the apartment:") -> Any:
+    """3-way smoking preference input: yes, no, or flexible."""
+    print(f"\n{Color.BOLD_BLUE}{prompt}{Color.RESET}")
+    print(f"  {Color.CYAN}[1]{Color.RESET} yes       (Smoking allowed)")
+    print(f"  {Color.CYAN}[2]{Color.RESET} no        (Strictly smoke-free)")
+    print(f"  {Color.CYAN}[3]{Color.RESET} flexible  (Doesn't matter / tolerant)")
+    mapping = {
+        "1": True, "yes": True, "y": True,
+        "2": False, "no": False, "n": False,
+        "3": "flexible", "flexible": "flexible",
+    }
+    raw = input(f"Enter choice [1-3, default: {Color.CYAN}2 (no){Color.RESET}]: ").strip().lower()
+    return mapping.get(raw, False)
+
+
+def get_pets_preference(prompt: str = "Pet policy in the apartment:") -> Any:
+    """3-way pets preference input: yes, no, or flexible."""
+    print(f"\n{Color.BOLD_BLUE}{prompt}{Color.RESET}")
+    print(f"  {Color.CYAN}[1]{Color.RESET} yes       (Pets allowed / welcome)")
+    print(f"  {Color.CYAN}[2]{Color.RESET} no        (No pets)")
+    print(f"  {Color.CYAN}[3]{Color.RESET} flexible  (Doesn't matter / tolerant)")
+    mapping = {
+        "1": True, "yes": True, "y": True,
+        "2": False, "no": False, "n": False,
+        "3": "flexible", "flexible": "flexible",
+    }
+    raw = input(f"Enter choice [1-3, default: {Color.CYAN}1 (yes){Color.RESET}]: ").strip().lower()
+    return mapping.get(raw, True)
+
+
+def calculate_match_score(
+    commute_duration: float,
+    max_commute: float,
+    budget_headroom: float,
+    max_budget: float,
+    seeker_prefs: Preferences,
+    host_prefs: Preferences,
+) -> int:
+    """
+    Computes an aggregated composite compatibility score (0 - 100%):
+    - Commute / Travel Time:  30%
+    - Budget / Headroom:      25%
+    - Cleanliness Alignment:  15%
+    - Sleep Schedule Harmony: 15%
+    - Kashrut & Shabbat:      15%
+    """
+    # 1. Commute Score (up to 30 pts)
+    if max_commute > 0:
+        ratio = min(1.0, max(0.0, commute_duration / max_commute))
+        commute_score = round((1.0 - ratio) * 30)
+    else:
+        commute_score = 15
+
+    # 2. Budget Score (up to 25 pts)
+    if max_budget > 0:
+        savings_ratio = max(0.0, budget_headroom / max_budget)
+        budget_score = min(25, round(12 + savings_ratio * 30))
+    else:
+        budget_score = 15
+
+    # 3. Cleanliness Alignment (up to 15 pts)
+    diff = abs(seeker_prefs.cleanliness - host_prefs.cleanliness)
+    clean_score = max(0, 15 - diff * 3)
+
+    # 4. Sleep Schedule Harmony (up to 15 pts)
+    if seeker_prefs.sleep_schedule == host_prefs.sleep_schedule:
+        sleep_score = 15
+    elif seeker_prefs.sleep_schedule == "flexible" or host_prefs.sleep_schedule == "flexible":
+        sleep_score = 12
+    else:
+        sleep_score = 6
+
+    # 5. Kashrut & Shabbat Harmony (up to 15 pts)
+    shabbat_score = 5 if seeker_prefs.shabbat_observant == host_prefs.shabbat_observant else 2
+    kashrut_weights = {
+        ("secular", "secular"): 10,
+        ("traditional", "traditional"): 10,
+        ("religious", "religious"): 10,
+        ("ultra_orthodox", "ultra_orthodox"): 10,
+        ("secular", "traditional"): 8,
+        ("traditional", "secular"): 8,
+        ("traditional", "religious"): 8,
+        ("religious", "traditional"): 8,
+        ("religious", "ultra_orthodox"): 8,
+        ("ultra_orthodox", "religious"): 8,
+    }
+    kashrut_pair = (seeker_prefs.kashrut_level, host_prefs.kashrut_level)
+    spiritual_score = shabbat_score + kashrut_weights.get(kashrut_pair, 4)
+
+    return min(100, max(1, commute_score + budget_score + clean_score + sleep_score + spiritual_score))
+
+
+def format_score_badge(score: int) -> str:
+    """Format compatibility score with aesthetic color and rating label."""
+    if score >= 85:
+        return f"{Color.BOLD_GREEN}{score}% [Top Match]{Color.RESET}"
+    if score >= 70:
+        return f"{Color.GREEN}{score}% [Good Match]{Color.RESET}"
+    if score >= 55:
+        return f"{Color.YELLOW}{score}% [Fair Match]{Color.RESET}"
+    return f"{Color.RED}{score}% [Weak Match]{Color.RESET}"
+
+
 def run_host_interactive_session():
     print(f"{Color.BOLD_CYAN}{'=' * 80}{Color.RESET}")
     print(f"   {Color.BOLD_CYAN}FLATMATCH - APARTMENT OWNER / HOST ROOMMATE MATCHER (CLI){Color.RESET}")
@@ -200,8 +303,8 @@ def run_host_interactive_session():
     # Step 3: Lifestyle & Living Rules
     # --------------------------------------------------------------------------
     print(f"\n{Color.BOLD_BLUE}[STEP 3: APARTMENT LIFESTYLE & ROOMMATE RULES]{Color.RESET}")
-    is_smoker = get_bool_input("Is smoking allowed in the apartment?", default=False)
-    allows_pets = get_bool_input("Are pets allowed in the apartment?", default=True)
+    is_smoker = get_smoking_preference("Smoking policy in the apartment:")
+    allows_pets = get_pets_preference("Pet policy in the apartment:")
     cleanliness = get_int_input("Apartment cleanliness standard (1=relaxed, 5=spotless)", default=4, min_val=1, max_val=5)
     sleep_sched = get_input("Apartment sleep routine (morning_person / night_owl / flexible)", default="morning_person")
     if sleep_sched not in ("morning_person", "night_owl", "flexible"):
@@ -306,16 +409,26 @@ def run_host_interactive_session():
         distance_km = commute.distance_km if commute else 0.0
         budget_surplus = seeker.max_budget - rent_per_room
 
+        match_score = calculate_match_score(
+            commute_duration=duration_min,
+            max_commute=seeker.max_commute_minutes,
+            budget_headroom=budget_surplus,
+            max_budget=seeker.max_budget,
+            seeker_prefs=seeker.preferences,
+            host_prefs=host.preferences,
+        )
+
         matching_candidates.append({
             "seeker": seeker,
             "duration_minutes": duration_min,
             "distance_km": distance_km,
             "budget_surplus": budget_surplus,
             "is_verified": commute.is_verified if commute else False,
+            "match_score": match_score,
         })
 
-    # Sort matching candidates: shortest commute first, then highest budget surplus
-    matching_candidates.sort(key=lambda item: (item["duration_minutes"], -item["budget_surplus"]))
+    # Sort matching candidates: highest compatibility score first, then shortest commute
+    matching_candidates.sort(key=lambda item: (-item["match_score"], item["duration_minutes"]))
 
     # --------------------------------------------------------------------------
     # Step 5: Results Display
@@ -331,8 +444,10 @@ def run_host_interactive_session():
             seeker = match["seeker"]
             verified_tag = f"{Color.GREEN}[Verified: True]{Color.RESET}" if match["is_verified"] else f"{Color.GRAY}[Fallback]{Color.RESET}"
             surplus_tag = f"{Color.GREEN}+{match['budget_surplus']:,.0f} NIS{Color.RESET}" if match['budget_surplus'] >= 0 else f"{Color.RED}{match['budget_surplus']:,.0f} NIS{Color.RESET}"
+            score_badge = format_score_badge(match["match_score"])
 
-            print(f"{Color.BOLD_YELLOW}#{idx}{Color.RESET} [CANDIDATE: {Color.BOLD_CYAN}{seeker.name.upper()}{Color.RESET}] (Age: {seeker.age}, Phone: {Color.CYAN}{seeker.phone}{Color.RESET})")
+            print(f"{Color.BOLD_YELLOW}#{idx}{Color.RESET} [CANDIDATE: {Color.BOLD_CYAN}{seeker.name.upper()}{Color.RESET}] {score_badge} (Age: {seeker.age}, Phone: {Color.CYAN}{seeker.phone}{Color.RESET})")
+            print(f"   Match Score:     {score_badge}")
             print(f"   Destination:     {seeker.destination_address}")
             print(f"   Commute Time:    {Color.BOLD_YELLOW}{match['duration_minutes']:.1f} min{Color.RESET} ({match['distance_km']:.1f} km drive) {verified_tag}")
             print(f"   Candidate Limit: Accepts up to {seeker.max_commute_minutes:.0f} min commute")
