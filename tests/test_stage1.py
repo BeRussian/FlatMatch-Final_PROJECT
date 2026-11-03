@@ -13,7 +13,7 @@ import pytest
 from flatmatch.models import Preferences, Apartment, ApartmentSeeker, RoommateSeeker
 from flatmatch.processing import compare_amenities
 from flatmatch.context_managers import ApartmentHoldContext
-from flatmatch.repository import FlatMatchRepository
+from flatmatch.repository import FlatMatchRepository, parse_user_record
 
 
 # ------------------------------------------------------------------------------
@@ -182,4 +182,77 @@ def test_repository_load_and_get_by_phone():
 
     assert fetched_user is not None
     assert fetched_user.name == first_user.name
+
+
+# ------------------------------------------------------------------------------
+# Test 11: Lecturer Feedback 1 - __repr__ implementation in central domain models
+# ------------------------------------------------------------------------------
+def test_lecturer_feedback_models_repr_implementation():
+    pref = Preferences(cleanliness=4, allows_pets=True, is_smoker=False)
+    assert "Preferences(" in repr(pref)
+    assert "cleanliness=4" in repr(pref)
+
+    apt = Apartment(city="Tel Aviv", rent=3500.0, rooms=2, amenities={"Balcony"})
+    apt_repr = repr(apt)
+    assert "Apartment(" in apt_repr
+    assert "city='Tel Aviv'" in apt_repr
+    assert "rent=3500.0" in apt_repr
+    assert "rooms=2" in apt_repr
+
+    seeker = ApartmentSeeker(
+        name="Daniel Levin",
+        age=25,
+        phone="050-1000001",
+        max_budget=3500.0,
+        preferred_cities=["Tel Aviv"],
+        preferences_OBJ=pref,
+    )
+    seeker_repr = repr(seeker)
+    assert "ApartmentSeeker(" in seeker_repr
+    assert "name='Daniel Levin'" in seeker_repr
+    assert "phone='050-1000001'" in seeker_repr
+    assert "max_budget=3500.0" in seeker_repr
+
+    owner = RoommateSeeker(
+        name="Doron Sela",
+        age=27,
+        phone="050-2000001",
+        apartment=apt,
+        preferences_OBJ=pref,
+    )
+    owner_repr = repr(owner)
+    assert "RoommateSeeker(" in owner_repr
+    assert "name='Doron Sela'" in owner_repr
+    assert "phone='050-2000001'" in owner_repr
+    assert "apartment=Apartment(" in owner_repr
+
+
+# ------------------------------------------------------------------------------
+# Test 12: Lecturer Feedback 2 - parse_user_record rejects unknown user types
+# ------------------------------------------------------------------------------
+def test_lecturer_feedback_parse_user_record_unknown_type():
+    # 1. Unknown user type must raise ValueError
+    unknown_record = {
+        "name": "Alex",
+        "age": 28,
+        "phone": "050-9999999",
+        "type": "guest_investor",
+        "apartment": {"city": "Tel Aviv", "rent": 3000.0},
+    }
+    with pytest.raises(ValueError, match="Unknown or unsupported user type 'guest_investor'"):
+        parse_user_record(unknown_record)
+
+    # 2. Missing type with ambiguous fields must raise ValueError
+    ambiguous_record = {
+        "name": "Alex",
+        "age": 28,
+        "phone": "050-9999999",
+    }
+    with pytest.raises(ValueError, match="Record is missing valid 'type' key"):
+        parse_user_record(ambiguous_record)
+
+    # 3. Non-dict input must raise TypeError
+    with pytest.raises(TypeError, match="Record must be a dict"):
+        parse_user_record(["not", "a", "dict"])
+
 
