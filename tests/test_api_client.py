@@ -57,6 +57,56 @@ def test_api_client_exhausts_retries_and_raises_connection_error():
     assert len(sleep_calls) == 2  # Sleeps between attempt 1->2 and 2->3
 
 
+def test_api_client_retry_success_after_transient_failure():
+    """
+    Verifies rubric requirement 2.2:
+    Retry success after transient network timeout or connection failure:
+    - Attempt 1: Raises transient Timeout.
+    - Client sleeps for retry_delay.
+    - Attempt 2: Succeeds, parses JSON payload, returns verified CommuteMetrics.
+    """
+    call_count = 0
+    sleep_calls = []
+
+    def mock_sleep(seconds):
+        sleep_calls.append(seconds)
+
+    def transient_http_get(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise requests.exceptions.Timeout("Transient socket timeout on attempt 1")
+
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.json.return_value = {
+            "code": "Ok",
+            "routes": [{"distance": 12500.0, "duration": 1320.0}],
+        }
+        return resp
+
+    client = CommuteAPIClient(
+        http_get=transient_http_get,
+        sleep_func=mock_sleep,
+        max_retries=3,
+        retry_delay=0.1,
+    )
+
+    metrics = client.fetch_commute_metrics(
+        origin_coords=(34.7818, 32.0853),
+        dest_coords=(34.8015, 32.1133),
+        origin_address="Tel Aviv",
+        dest_address="Ramat Gan",
+    )
+
+    assert call_count == 2
+    assert len(sleep_calls) == 1
+    assert sleep_calls[0] == 0.1
+    assert metrics.is_verified is True
+    assert metrics.distance_km == 12.5
+    assert metrics.duration_minutes == 22.0
+
+
 @pytest.mark.parametrize("status_code", [400, 403, 404, 500, 503])
 def test_api_client_http_error_immediate(status_code):
     """Verifies that non-2xx HTTP responses raise APIHTTPError immediately without retrying."""

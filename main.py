@@ -285,6 +285,8 @@ def run_main_demo(use_live_network: bool = False):
         origin_address=origin_name,
         dest_address=dest_name,
     )
+    commute_source_label = "REAL (Live OSRM API Network Response)" if use_live_network else "SIMULATED (Deterministic Offline Mock)"
+    print(f"Commute Data Source: {commute_source_label}")
     print(f"Commute Metrics Result: {commute_result}")
 
     # TDD feature demonstration
@@ -361,7 +363,7 @@ def run_main_demo(use_live_network: bool = False):
 
     async_results = asyncio.run(run_async_demo())
     verified_count = sum(1 for r in async_results if r["is_verified"])
-    print(f"Async Semaphore-Bounded Verification: Concurrently queried {len(async_results)} apartments (Max Concurrency: 3)")
+    print(f"Async Semaphore-Bounded Verification [SIMULATED]: Concurrently queried {len(async_results)} apartments (Max Concurrency: 3)")
     print(f"  -> Verified Municipal Units: {verified_count}/{len(async_results)}")
 
     # 10.2 Thread-Safe Room Inventory with Lock

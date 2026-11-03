@@ -326,7 +326,7 @@ Below is the verified Git log output demonstrating the modular branching strateg
   │   ├── threaded_processing.py     # תהליכונים ובטיחות Thread-Safe (threading.Lock נגד Overbooking)
   │   ├── async_processing.py        # תכנות אסינכרוני (asyncio.gather עם Semaphore לוויסות קצב)
   │   └── reports.py                 # תת-מערכת חוזים (LeaseInspectionSubsystem) ודוח משולב
-  ├── tests/                         # 75 בדיקות אוטומטיות (pytest) ב-100% הצלחה
+  ├── tests/                         # 76 בדיקות אוטומטיות (pytest) ב-100% הצלחה
   ├── main.py                        # תסריט ההדגמה המרכזי ב-11 שלבים (Offline ו-Live)
   ├── README.md                      # מסמך התיעוד הראשי
   ├── AI_USAGE.md                    # תיעוד שימוש אחראי ב-AI
@@ -367,9 +367,9 @@ Below is the verified Git log output demonstrating the modular branching strateg
 
 ### 5. הוכחות שהמערכת עובדת
 - **סיכום תוצאות הבדיקות האוטומטיות (pytest):**
-  כל **75 בדיקות היחידה והאינטגרציה** עוברות בהצלחה מלאה (100% Pass) תוך 9.36 שניות, ללא צורך ברשת, ללא מפתחות וללא השהיות אמיתיות:
+  כל **76 בדיקות היחידה והאינטגרציה** בתיקיית `tests/` (וכן 7 בדיקות נוספות ב-`test_part_d.py`, בסך הכל **83 בדיקות עוברות ב-100%**) מסתיימות בהצלחה מלאה, ללא צורך ברשת, ללא מפתחות וללא השהיות אמיתיות:
   ```text
-  ============================= 75 passed in 9.36s =============================
+  ============================= 76 passed in 5.25s =============================
   ```
 - **דוגמת חיבור אמיתי ותוצאתו (`python main.py --live`):**
   פנייה חיה לרשת האמיתית מול OSRM Public API:
