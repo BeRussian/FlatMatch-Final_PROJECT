@@ -266,45 +266,66 @@ Below is the verified Git log output demonstrating the modular branching strateg
 
 ## שלב 2
 
-### 1. תיאור הפיצ'ר החדש והאינטגרציה עם API חיצוני (External API & Smart Location)
-- **ההרחבה העסקית (Commute Distance & Duration):** הרחבת תהליך סינון ודירוג הדירות של FlatMatch משלב 1. במקום להסתמך רק על רשימת ערים כללית, מחפש הדירה מזין את כתובת מוסד הלימודים או מקום העבודה שלו (`destination_address`) ואת זמן הנסיעה המקסימלי הרצוי בדקות (`max_commute_minutes`). המערכת מחשבת באופן מדויק ואוטומטי את מרחק וזמן הנסיעה לכל דירה מוצעת.
-- **נרמול כתובות עמיד מקומי (Address Normalizer):** מודול מקומי (`flatmatch/address_normalizer.py`) המבצע ניקוי של קלט המשתמש, מתרגם קיצורים וכינויים ישראליים נפוצים (כגון `ת"א`, `אונו`, `הטכניון`, `בן גוריון`, `עזריאלי`), ומעביר בבטחה כתובות חופשיות מבלי לקרוס.
-- **שירותי המיפוי והניתוב (Zero-Key APIs):**
-  - **גיאוקודינג (Nominatim):** המרת כתובות לקואורדינטות גיאוגרפיות (`lon, lat`). כולל אינדקס מהיר מובנה למבחנים בלתי תלויים ברשת ותמיכה בפנייה לרשת הציבורית של OpenStreetMap.
-  - **חישוב מסלולים (OSRM Public API):** פנייה לשירות `https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}` לקבלת מרחק ומשך נסיעה. המידע מומר לאובייקט מערכת `CommuteMetrics(distance_km, duration_minutes, is_verified)`.
-- **עמידות לכשלים ומצב גיבוי מבוקר (Fault Tolerance & Graceful Fallback):**
-  - **4 חריגות מובחנות ב-`api_client.py`:** `APIConnectionError` (כשל רשת המבצע מנגנון Retry עד 3 פעמים עם השהיה אקספוננציאלית), `APIHTTPError` (שגיאות קוד HTTP 4xx/5xx), `APIResponseFormatError` (קובץ JSON פגום), ו-`APIDataValidationError` (מענה חסר שדות חיוניים).
-  - **Graceful Fallback:** במקרה של כשל שירות חיצוני, המערכת אינה קורסת אלא מעבירה אובייקט גיבוי לא מאומת (`is_verified=False`) עם סטטוס `"FALLBACK_UNVERIFIED"`, ותת-המערכת `LeaseInspectionSubsystem` מעבירה את החוזה לבדיקה ידנית `"PENDING_MANUAL_VERIFICATION"` כדי למנוע חתימת חוזה שגויה.
+### 1. תיאור ההרחבה העסקית (Business Extension)
+- **התהליך שהורחב והערך העסקי שלו:** תהליך סינון ודירוג הדירות של FlatMatch משלב 1 הורחב משמעותית. במקום להסתמך רק על רשימת ערים כללית, מחפש הדירה מזין את כתובת מוסד הלימודים או מקום העבודה שלו (`destination_address`) ואת זמן הנסיעה המקסימלי הרצוי בדקות (`max_commute_minutes`). המערכת מחשבת באופן מדויק ואוטומטי את מרחק ומשך הנסיעה מהדירה המוצעת ליעד. **הערך העסקי:** מניעת חתימת חוזים בדירות מרוחקות, חיסכון משמעותי בזמן יוממות, ודיוק מרבי של אלגוריתם ההתאמה.
+- **השירות החיצוני שנבחר והמידע שמתקבל ממנו:** שירותי המיפוי והניתוב הציבוריים OpenStreetMap / OSRM (`router.project-osrm.org`) ו-Nominatim (ללא צורך במפתח בתשלום - Zero-Key Architecture). השירות מקבל קואורדינטות גיאוגרפיות ומחזיר מרחק נסיעה מדויק בק"מ ומשך נסיעה בדקות. הנתונים מומרים לאובייקט מערכת פנימי `CommuteMetrics(distance_km, duration_minutes, is_verified)`.
+- **אופן הטיפול באי-זמינות או במידע שגוי (Fault Tolerance & Graceful Fallback):** כאשר השירות החיצוני אינו זמין, סובל מתקלת רשת או מחזיר מענה משובש, המערכת אינה קורסת. היא יוצרת אובייקט גיבוי לא מאומת (`is_verified=False`), מתייגת את תוצאת ההתאמה כ-`FALLBACK_UNVERIFIED`, ומעבירה את התיק בתת-המערכת `LeaseInspectionSubsystem` לסטטוס בדיקה ידנית (`PENDING_MANUAL_VERIFICATION`).
+- **פעולות שניתן לבצע בחפיפה לצד המשאב המשותף:** אימות זכאות מוניציפלי של מספר דירות מתבצע במקביל ובחפיפה מלאה (באמצעות `asyncio.gather`), ופניות של מספר שותפים לרישום חדר בדירה מבוקשת מעובדות בחפיפה באמצעות Threads נפרדים. המשאב המשותף עליו יש להגן בסנכרון הוא **מלאי החדרים הפנויים בדירה** (`SharedRoomInventory`), כדי למנוע תנאי מרוץ (Race Condition מסוג Check-Then-Act) ורישום יתר (Overbooking).
 
-### 2. דפוסי עיצוב (Design Patterns & Dependency Injection)
-1. **Strategy Pattern (`flatmatch/strategies.py`):**
-   - ממשק אבסטרקטי `MatchingStrategy` המאפשר החלפה פולימורפית של אלגוריתם הניקוד.
-   - מימושים קונקרטיים:
-     - `BudgetFocusedStrategy`: שמה דגש עיקרי על חיסכון כספי והתאמת הרגלי ניקיון.
+### 2. תבניות תכנון (Design Patterns & Dependency Injection)
+1. **תבנית אסטרטגיה – Strategy Pattern (`flatmatch/strategies.py`):**
+   - *הצדקה:* שוכרים שונים מחזיקים בסדרי עדיפויות שונים (חלקם ממוקדי חיסכון כספי וסטודנטיאלי, וחלקם ממוקדי נוחות, קרבה לעבודה ושעות שינה). תבנית Strategy מאפשרת להחליף את אלגוריתם הניקוד בזמן ריצה ללא שינוי בקוד השירות.
+   - *מימוש:* ממשק אבסטרקטי `MatchingStrategy` עם חוזה משותף `calculate_score(seeker, owner, commute) -> float`. שתי חלופות קונקרטיות:
+     - `BudgetFocusedStrategy`: שמה דגש עיקרי על מרווח תקציבי והתאמת הרגלי ניקיון.
      - `CommuteAndLifestyleStrategy`: מעניקה משקל מכריע לזמני נסיעה קצרים ומאומתים, שעות שינה ומתקני הדירה.
-2. **Factory Pattern (`flatmatch/factories.py`):**
-   - המחלקה `UserFactory` אחראית על יצירה פולימורפית בטוחה של מודלי המשתמשים (`ApartmentSeeker` או `RoommateSeeker`) מתוך מילוני נתונים (JSONL / API), תוך אימות קפדני של טיפוסי הנתונים וערכי השדות.
-3. **Observer Pattern (`flatmatch/observers.py`):**
-   - ממשק אבסטרקטי `MatchEventListener` המאזין לאירועי הערכת התאמות (`on_match_evaluated`).
-   - מימושים קונקרטיים:
-     - `MatchStatisticsObserver`: אוסף סטטיסטיקות מצטברות, התאמות מאושרות לפי עיר ושיעורי נפילה של ה-API.
-     - `ApplicantNotificationObserver`: מפיק התראות בזמן אמת למועמדים על אישור התאמות או צורך בבדיקה ידנית.
-     - `SubsystemSyncObserver`: מסנכרן אוטומטית כל תוצאת התאמה עם תת-מערכת בדיקת החוזים `LeaseInspectionSubsystem`.
-4. **הזרקת תלויות (Dependency Injection - DI):**
-   - מחלקת השירות `FlatMatchService` מקבלת את לקוח ה-API, אסטרטגיית הניקוד, וה-Observers דרך ה-Constructor, מה שמאפשר בידוד מוחלט והרצת בדיקות יחידה מלאות ללא צורך ברשת.
+2. **תבנית מפעל – Factory Pattern (`flatmatch/factories.py`):**
+   - *הצדקה:* יצירה פולימורפית בטוחה של ישויות משתמש שונות מתוך מילוני נתונים חיצוניים (JSONL או שירותי רשת), תוך הסתרת מנגנון האתחול ואימות קפדני של הטיפוסים.
+   - *מימוש:* המחלקה `UserFactory` הכוללת את הפעולה הסטטית `create_user(data: dict) -> User`, המייצרת ומחזירה מופע של `ApartmentSeeker` או `RoommateSeeker` בהתאם לשדה `type`.
+3. **תבנית צופה – Observer Pattern (`flatmatch/observers.py`):**
+   - *הצדקה:* הפרדת רשויות וצימוד רפוי (Decoupling) – ניתוק מנוע ההתאמה מפעולות לוואי כגון ניטור, הפקת סטטיסטיקות, שליחת התראות וסנכרון מערכות חוזים.
+   - *מימוש:* ממשק אבסטרקטי `MatchEventListener` עם המתודה `on_match_evaluated(result)`. שלושה צופים קונקרטיים:
+     - `MatchStatisticsObserver`: אוסף סטטיסטיקות מצטברות, שיעור התאמות מאושרות וכשלי API.
+     - `ApplicantNotificationObserver`: מפיק הודעות והתראות בזמן אמת למועמדים על אישור התאמות.
+     - `SubsystemSyncObserver`: מסנכרן אוטומטית כל תוצאת התאמה ישירות לתת-מערכת בדיקת החוזים `LeaseInspectionSubsystem`.
+4. **הזרקת תלויות – Dependency Injection (DI):**
+   - מחלקת השירות `FlatMatchService` (`flatmatch/services.py`) מקבלת את לקוח ה-API, אסטרטגיית הניקוד, ורשימת ה-Observers דרך הבנאי (Constructor Injection), מה שמבטיח בדיקות יחידה מבודדות ודטרמיניסטיות ללא תלות ברשת.
 
-### 3. מקביליות, אסינכרוניות ומנגנוני סנכרון (Concurrency & Synchronization)
-1. **פעולות אסינכרוניות מבוקרות (`flatmatch/async_processing.py`):**
-   - אימות מקביל של נתוני דירות מול מרשם מוניציפלי באמצעות `asyncio.gather`.
-   - שימוש ב-`asyncio.Semaphore(max_concurrency=4)` לוויסות והגבלת כמות הבקשות הפעילות בו-זמנית, למניעת הצפה (Server Flooding) או חסימת קצב (Rate Limiting).
-   - שמירה קפדנית על סדר התוצאות בהתאמה מדויקת לרשימת הקלט המקורית.
-2. **בטיחות תהליכונים ומניעת תנאי מרוץ (`flatmatch/threaded_processing.py`):**
-   - ניהול מלאי חדרים פנויים בדירה מבוקשת (`SharedRoomInventory`).
-   - הגנה על הקטע הקריטי Check-Then-Act באמצעות `threading.Lock` (`with self._lock:`).
-   - מניעה מוחלטת של רישום יתר (Overbooking) כאשר מספר Threads מתחרים בו-זמנית על החדרים האחרונים.
-   - ניהול מדויק של מחזור חיי התהליכונים: לולאה נפרדת להפעלת התהליכונים (`t.start()`) ולולאה נפרדת להמתנה לסיום (`t.join()`).
+### 3. מקביליות ובטיחות (Concurrency & Thread Safety)
+1. **חלופה א' – תהליכונים ובטיחות Thread-Safe (`flatmatch/threaded_processing.py`):**
+   - *תרחיש תנאי המרוץ (מצב Check-Then-Act):* כאשר בדירה נותר חדר פנוי אחד בלבד (`available_rooms == 1`), ושני מועמדים שונים שולחים בקשת שמירה במקביל משני Threads נפרדים. שניהם בודקים `if available_rooms > 0` (Check), מקבלים `True`, ואז שניהם מפחיתים את המלאי (Act), מה שגורם למלאי לרדת לערך שלילי ולרישום יתר (Overbooking) של שני שותפים לאותו חדר פיזי.
+   - *המשאב המשותף שעליו הגנו:* מונה החדרים הפנויים `_available_rooms` ורשימת השותפים הרשומים `_booked_seekers` במחלקה `SharedRoomInventory`.
+   - *אופן השימוש ב-Lock:* שימוש ב-`threading.Lock` באמצעות Context Manager (`with self._lock:`). הנעילה תוחמת את שלבי הבדיקה וההפחתה לפעולה אטומית אחת (Atomic Operation). כל Thread אחר שמנסה להזמין חדר נחסם וממתין, ורואה שהמלאי התאפס (`available_rooms == 0`), ובקשתו נדחית בבטחה ללא תקלות.
+   - *מחזור חיי התהליכונים:* לולאה נפרדת להפעלת התהליכונים (`t.start()`) ולולאה נפרדת להמתנה מסודרת לסיומם (`t.join()`) ללא שימוש בהשהיות שרירותיות (`sleep`).
+2. **חלופה ב' – תכנות אסינכרוני (`flatmatch/async_processing.py`):**
+   - *הפעולות האסינכרוניות:* אימות נתוני דירות מקביל מול מרשם עירוני חיצוני באמצעות `asyncio.gather`.
+   - *מנגנון הגבלת הקצב (Semaphore):* שימוש ב-`asyncio.Semaphore(max_concurrency=4)` המווסת את קצב הפניות בו-זמנית ומונע חסימות שרת (Rate Limiting) או הצפת משאבים.
+   - *הבדל בזמני הריצה:* בריצה סדרתית (Sequential) זמן הריצה המצטבר שווה לסכום כל זמני התגובה ($O(\sum t_i)$). בריצה אסינכרונית עם Semaphore זמן הריצה נחתך בכ-75% ונקבע לפי הבקשה המקבילית הארוכה ביותר בכל סבב ($O(\max t_i)$). נשמר סדר תוצאות דטרמיניסטי הזהה לסדר הקלט המקורי.
 
-### 4. תהליך הפיתוח בשיטת TDD (Test-Driven Development)
+### 4. שירותים חיצוניים (External Services & Fault Tolerance)
+- **כתובת ה-API ושיטת הגישה:** פנייה בשירות GET לשירות הציבורי של OSRM:
+  `GET https://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false`
+  וגיאוקודינג ב-GET מול OpenStreetMap Nominatim:
+  `GET https://nominatim.openstreetmap.org/search?q={address}&format=json&limit=1`
+- **מבנה הנתונים שהתקבל:** מענה JSON היררכי המכיל קוד סטטוס `"code": "Ok"` ומערך `routes` הכולל `distance` (במטרים) ו-`duration` (בשניות). המידע נבדק ומפוענח למבנה נתונים פנימי `CommuteMetrics(distance_km, duration_minutes, is_verified)`.
+- **מנגנון ניסיונות חוזרים (Retry):**
+  - מתבצע עבור שגיאות תקשורת וזמן קצוב בלבד (`Timeout`, `ConnectionError`).
+  - מתבצע עד 3 ניסיונות בסך הכול, עם השהיה אקספוננציאלית בין הניסיונות (0.5s, 1.0s, 2.0s).
+  - לאחר הכישלון השלישי נזרקת חריגה ייעודית וברורה `APIConnectionError`.
+  - **אי-ביצוע Retry במקרים לא מתאימים:** במקרה של שגיאת הרשאה או שגיאת לקוח (HTTP 4xx/5xx נזרקת `APIHTTPError`), מענה שאינו JSON תקין (נזרקת `APIResponseFormatError`), או JSON חסר שדות חיוניים (נזרקת `APIDataValidationError`) – המערכת אינה מבצעת ניסיונות חוזרים מיותרים, אלא מדווחת על הכשל מיד.
+- **אבטחה, סודות ולוגים:** הגדרות הרשת נטענות מקובץ סביבה דרך `flatmatch/config.py`. הקבצים `.env` ו-`__pycache__` מוחרגים ב-`.gitignore`, ובמאגר קיים קובץ `.env.example` עם שמות המשתנים וערכי דוגמה בלבד. כל המודולים משתמשים בספריית `logging` לתיעוד פעולות וכשלים ללא חשיפת סודות או מידע אישי.
+
+### 5. אינטגרציה בין חלקים (Subsystem & System Integration)
+- **זרימת המידע המלאה בתהליך העסקי המרכזי:**
+  1. קלט משתמש נטען באמצעות `UserFactory` מתוך `data/sample_data.jsonl` או ממשק הקלט.
+  2. כתובת היעד של מחפש הדירה מנורמלת ב-`AddressNormalizer` ומתורגמת לקואורדינטות.
+  3. `FlatMatchService` מזמינה את `APIClient` לקבלת זמני הנסיעה האמיתיים מהדירה.
+  4. מופעלת בדיקת TDD מובנית `calculate_commute_adjusted_budget` המתאימה את תקרת התקציב בהתאם לעומס הנסיעה.
+  5. `FlatMatchService` מפעילה את אסטרטגיית הניקוד שנבחרה (`MatchingStrategy`), אשר משקללת את מדדי הנסיעה, התקציב, והרגלי החיים.
+  6. תוצאת ההתאמה מופצת לכל ה-`Observers` הרשומים: `MatchStatisticsObserver` מעדכן מונים, `ApplicantNotificationObserver` מודיע למשתמש, ו-`SubsystemSyncObserver` רושם את החוזה ב-`LeaseInspectionSubsystem`.
+  7. בעת אישור התאמה לדירה מבוקשת, `SharedRoomInventory` מבצע שריון חדר מוגן-נעילה (`threading.Lock`), המבטיח שלא יהיה רישום יתר גם כאשר מועמדים מתחרים במקביל.
+  8. מודול `reports.py` מפיק דוח עסקי אינטגרטיבי (`generate_integrated_business_report`) המצליב את כל משתמשי ה-Repository עם בדיקות החוזים, יחסי ההצלחה (`verified_ready_ratio`) והתפלגות הסטטוסים.
+
+### 6. תהליך הפיתוח בשיטת TDD (Test-Driven Development)
 פיתוח התכונה `calculate_commute_adjusted_budget(base_budget: float, commute: CommuteMetrics) -> float` בוצע לפי מחזור TDD קפדני ומתועד בשלושה Commits עוקבים ב-Git:
 1. **שלב אדום (RED Commit):**
    - כתיבת סוויטת בדיקות ייעודית ב-`tests/test_tdd_feature.py` הכוללת 7 מקרי קצה (נסיעה מתחת לסף, נסיעה מעל לסף, רצפת אפס, נסיעה לא מאומתת, בדיקת טיפוסים ושגיאות).
@@ -318,7 +339,7 @@ Below is the verified Git log output demonstrating the modular branching strateg
    - הוספת תיעוד מתמטי ועסקי מפורט (docstring), והבטחה שכל הבדיקות ממשיכות לעבור בצורה מושלמת.
    - **Commit Hash:** `94e7c8f` (`refactor(tdd-refactor): extract constants and refine commute budget calculation`)
 
-### 5. הוראות הרצה ובדיקות (Execution & Test Suite Instructions)
+### 7. הוראות הרצה ובדיקות (Execution & Test Suite Instructions)
 - **הרצת בדיקות אוטומטיות (pytest):**
   הפרויקט כולל 73 בדיקות יחידה אוטומטיות הרצות ללא תלות ברשת (תוך שימוש ב-Fixtures, Parametrize, Mocks ו-`tmp_path`):
   ```bash
