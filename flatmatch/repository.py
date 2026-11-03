@@ -139,7 +139,12 @@ class FlatMatchRepository:
 # ==============================================================================
 
 def demonstrate_streaming_and_repository():
-    data_path = os.path.join(os.path.dirname(__file__), "data", "sample_data.jsonl")
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'sample_data.jsonl'),
+        os.path.join(os.path.dirname(__file__), 'data', 'sample_data.jsonl'),
+        os.path.join('data', 'sample_data.jsonl'),
+    ]
+    data_path = next((p for p in candidates if os.path.exists(p)), candidates[0])
     print(f"\n--- 1. Incremental Streaming Verification from '{data_path}' ---")
 
     # Verify lazy streaming generator without pre-allocating whole list
