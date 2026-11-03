@@ -10,23 +10,16 @@ import json
 import os
 try:
     from flatmatch.models import User, ApartmentSeeker, RoommateSeeker, Apartment, Preferences
+    from flatmatch.factories import UserFactory, VALID_USER_TYPES
 except ImportError:
     from .models import User, ApartmentSeeker, RoommateSeeker, Apartment, Preferences
-
-
-VALID_USER_TYPES = {"apartment_seeker", "roommate_seeker"}
+    from .factories import UserFactory, VALID_USER_TYPES
 
 
 def parse_user_record(data: dict) -> User:
     """
     Validates dictionary structure and instantiates the appropriate domain model
-    using the corresponding @classmethod from_dict.
-
-    Validates:
-    - data is a dict.
-    - essential base fields ('name', 'age', 'phone') are present.
-    - if 'type' is present, it must be a valid known user type ('apartment_seeker' or 'roommate_seeker').
-    - if 'type' is missing, safely infers the type based on unambiguous schema keys.
+    via UserFactory.
     """
     if not isinstance(data, dict):
         raise TypeError(f"Record must be a dict, got {type(data).__name__}")
@@ -37,35 +30,7 @@ def parse_user_record(data: dict) -> User:
         if field not in data:
             raise ValueError(f"Record is missing required field '{field}': {data}")
 
-    # Validate user type if explicitly supplied
-    raw_type = data.get("type")
-    if raw_type is not None:
-        if not isinstance(raw_type, str):
-            raise TypeError(f"Field 'type' must be a str, got {type(raw_type).__name__}")
-        user_type = raw_type.strip().lower()
-        if user_type not in VALID_USER_TYPES:
-            raise ValueError(
-                f"Unknown or unsupported user type '{raw_type}'. "
-                f"Supported types are: {', '.join(sorted(VALID_USER_TYPES))}."
-            )
-        if user_type == "roommate_seeker":
-            return RoommateSeeker.from_dict(data)
-        elif user_type == "apartment_seeker":
-            return ApartmentSeeker.from_dict(data)
-
-    # If 'type' is omitted, perform unambiguous structural inference
-    has_apt = "apartment" in data
-    has_budget = "max_budget" in data
-
-    if has_apt and not has_budget:
-        return RoommateSeeker.from_dict(data)
-    elif has_budget and not has_apt:
-        return ApartmentSeeker.from_dict(data)
-    else:
-        raise ValueError(
-            f"Unable to determine user type for record with phone '{data.get('phone')}'. "
-            f"Expected either explicit 'type' in {sorted(VALID_USER_TYPES)} or distinct schema keys."
-        )
+    return UserFactory.create_user(data)
 
 
 def stream_users_from_jsonl(filepath: str):
@@ -129,9 +94,26 @@ class FlatMatchRepository:
             count += 1
         return count
 
+    def add_user(self, user: User) -> None:
+        """Adds a single user directly into repository indexes."""
+        if not isinstance(user, User):
+            raise TypeError(f"Expected User instance, got {type(user).__name__}")
+        if user.phone in self._users_by_phone:
+            raise ValueError(f"Duplicate user phone ID detected: '{user.phone}'")
+        self._users_by_phone[user.phone] = user
+        self._users_list.append(user)
+
     def get_by_phone(self, phone: str):
         """O(1) safe lookup of user by unique phone ID."""
         return self._users_by_phone.get(phone)
+
+    def find_by_phone(self, phone: str):
+        """Alias for get_by_phone for descriptive querying."""
+        return self.get_by_phone(phone)
+
+    def total_users(self) -> int:
+        """Returns the total number of registered users."""
+        return len(self._users_list)
 
     def get_all_users(self) -> list:
         """Returns all loaded users."""

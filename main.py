@@ -1,10 +1,11 @@
 """
-FlatMatch - Centralized End-to-End Demonstration Runner (Stage 1 & API System)
-==============================================================================
-Central execution script demonstrating:
+FlatMatch - Centralized End-to-End Demonstration Runner (Stages 1 & 2)
+======================================================================
+Central execution script demonstrating all academic requirements:
 - Stage 1: OOP, Polymorphism, Collections, Comprehensions, Iterators/Lazy Pipeline, Context Managers.
-- Stage 2 (API & Smart Location): Smart Address Normalization, Zero-Key Geocoding & OSRM Commute Routing,
-           Retry Logic, Fallback Safety, and Async Rate-Limited Verification.
+- Stage 2: Smart Address Normalization, Zero-Key Geocoding & OSRM Commute Routing,
+           Strategy / Factory / Observer Design Patterns, Async Semaphore Concurrency,
+           Thread-Safe Lock Inventory, Lease Inspection Subsystem & Integrated Business Report.
 
 Usage:
     python main.py          (Default: 100% Offline, deterministic execution on any machine)
@@ -14,6 +15,14 @@ Usage:
 import os
 import sys
 import asyncio
+
+# Ensure UTF-8 console output encoding on Windows
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except AttributeError:
+        pass
 
 from flatmatch import (
     ApartmentSeeker,
@@ -43,12 +52,24 @@ from flatmatch import (
     build_lazy_seeker_pipeline,
     SearchSessionContext,
     ApartmentHoldContext,
+    UserFactory,
+    BudgetFocusedStrategy,
+    CommuteAndLifestyleStrategy,
+    MatchStatisticsObserver,
+    ApplicantNotificationObserver,
+    FlatMatchService,
     AddressNormalizer,
     NominatimGeocodingClient,
     CommuteAPIClient,
     fetch_apartment_verification_async,
     collect_verifications_sequential,
     collect_verifications_concurrent,
+    SharedRoomInventory,
+    run_concurrent_room_bookings,
+    LeaseInspectionSubsystem,
+    SubsystemSyncObserver,
+    generate_integrated_business_report,
+    calculate_commute_adjusted_budget,
 )
 
 
@@ -131,7 +152,7 @@ def run_main_demo(use_live_network: bool = False):
         print(f"  * {city}: {len(grouped_seekers)} seekers ({names})")
 
     # Set Operations
-    desired_amenities = {"Balcony", "Air Conditioner", "Parking", "Elevator"}
+    desired_amenities = {"Air Conditioner", "Balcony", "Parking", "Elevator"}
     actual_amenities = sample_owner.apartment.amenities
     matching = desired_amenities & actual_amenities
     missing = desired_amenities - actual_amenities
@@ -239,7 +260,7 @@ def run_main_demo(use_live_network: bool = False):
     dest_name = "הקריה האקדמית אונו, קרית אונו"
     origin_c = geocoder.geocode(origin_name)
     dest_c = geocoder.geocode(dest_name)
-    print(f"\nGeocoding Coordinates Resolved via Nominatim:")
+    print(f"Geocoding Coordinates Resolved:")
     print(f"  * Origin ({origin_name}): lon={origin_c[0]:.4f}, lat={origin_c[1]:.4f}")
     print(f"  * Dest   ({dest_name}): lon={dest_c[0]:.4f}, lat={dest_c[1]:.4f}")
 
@@ -264,27 +285,135 @@ def run_main_demo(use_live_network: bool = False):
         origin_address=origin_name,
         dest_address=dest_name,
     )
-    print(f"\nCommute Routing Metrics Calculated (OSRM API):")
-    print(f"  -> Distance: {commute_result.distance_km:.2f} km")
-    print(f"  -> Duration: {commute_result.duration_minutes:.1f} minutes")
-    print(f"  -> Verified: {commute_result.is_verified}")
+    print(f"Commute Metrics Result: {commute_result}")
 
-    # Async with Semaphore Rate Limiting Demonstration
-    print(f"\nAsync Semaphore-Bounded Route Verification:")
+    # TDD feature demonstration
+    adjusted_budget = calculate_commute_adjusted_budget(base_budget=4000.0, commute=commute_result)
+    print(f"TDD Commute-Adjusted Budget Ceiling: Base 4000 NIS -> Adjusted: {adjusted_budget:.1f} NIS (after {commute_result.duration_minutes:.1f} min commute)")
+
+    # --------------------------------------------------------------------------
+    # STEP 9: Design Patterns (Factory, Strategy, Observer)
+    # --------------------------------------------------------------------------
+    print("\n" + "=" * 75)
+    print("STEP 9: DESIGN PATTERNS (Factory, Strategy, Observer) & CORE SERVICE")
+    print("=" * 75)
+
+    # 9.1 Factory
+    new_seeker = UserFactory.create_user({
+        "name": "Barak Chen",
+        "age": 27,
+        "phone": "050-7770001",
+        "type": "apartment_seeker",
+        "max_budget": 3800.0,
+        "destination_address": "מתחם הבורסה, רמת גן",
+        "max_commute_minutes": 35.0,
+        "preferences": {
+            "cleanliness": 5,
+            "allows_pets": True,
+            "is_smoker": False,
+            "sleep_schedule": "flexible",
+            "kashrut_level": "low",
+            "shabbat_observant": False,
+        },
+    })
+    print(f"UserFactory Polymorphic Creation: {new_seeker.get_role_summary()}")
+
+    # 9.2 Strategies & Observers
+    stats_obs = MatchStatisticsObserver()
+    notif_obs = ApplicantNotificationObserver()
+
+    service_budget = FlatMatchService(
+        api_client=commute_client,
+        strategy=BudgetFocusedStrategy(),
+        observers=[stats_obs, notif_obs],
+        geocoding_client=geocoder,
+    )
+    service_lifestyle = FlatMatchService(
+        api_client=commute_client,
+        strategy=CommuteAndLifestyleStrategy(),
+        geocoding_client=geocoder,
+    )
+
+    compatible_owner = owners[1]  # Inbar Dagan (Ramat Gan, allows pets, rent 3200)
+    eval_budget = service_budget.evaluate_candidate_match(new_seeker, compatible_owner)
+    eval_lifestyle = service_lifestyle.evaluate_candidate_match(new_seeker, compatible_owner)
+
+    print(f"Polymorphic Scoring Comparison for Compatible Pair ({new_seeker.name} + {compatible_owner.name}):")
+    print(f"  -> Budget-Focused Strategy Score:       {eval_budget.score}/100.0 (Status: {eval_budget.status})")
+    print(f"  -> Commute & Lifestyle Strategy Score:  {eval_lifestyle.score}/100.0 (Status: {eval_lifestyle.status})")
+    print(f"Observer Notification Dispatched: {notif_obs.notifications[-1]}")
+
+    # Also show dealbreaker handling
+    eval_dealbreaker = service_budget.evaluate_candidate_match(new_seeker, sample_owner)
+    print(f"Dealbreaker Pair ({new_seeker.name} + {sample_owner.name}): Score={eval_dealbreaker.score}/100.0 (Status: {eval_dealbreaker.status})")
+
+    # --------------------------------------------------------------------------
+    # STEP 10: Concurrency & Synchronization (Async + Threading)
+    # --------------------------------------------------------------------------
+    print("\n" + "=" * 75)
+    print("STEP 10: CONCURRENCY & SYNCHRONIZATION (Async & Thread-Safe Lock)")
+    print("=" * 75)
+
+    # 10.1 Async with Semaphore
     apt_ids = ["APT-TLV-01", "APT-TLV-02", "APT-TLV-03", "APT-TLV-04", "APT-RG-01", "APT-JER-01"]
     async def run_async_demo():
         return await collect_verifications_concurrent(apt_ids, max_concurrency=3, delay_seconds=0.01)
 
     async_results = asyncio.run(run_async_demo())
     verified_count = sum(1 for r in async_results if r["is_verified"])
-    print(f"  -> Concurrently queried {len(async_results)} apartments (Bounded to Max Concurrency: 3)")
-    print(f"  -> Verified Units: {verified_count}/{len(async_results)}")
+    print(f"Async Semaphore-Bounded Verification: Concurrently queried {len(async_results)} apartments (Max Concurrency: 3)")
+    print(f"  -> Verified Municipal Units: {verified_count}/{len(async_results)}")
+
+    # 10.2 Thread-Safe Room Inventory with Lock
+    room_capacity = 2
+    applicant_names = ["Daniel Levin", "Ronit Shapira", "Yoav Goldstein", "Tal Mor", "Nadav Alon"]
+    print(f"\nMulti-Threaded Room Inventory Booking (Capacity: {room_capacity} rooms, Applicants: {len(applicant_names)} concurrent threads):")
+
+    inventory = run_concurrent_room_bookings(
+        available_rooms=room_capacity,
+        seeker_names=applicant_names,
+        apartment_id="APT-TLV-SHARED",
+        artificial_delay=0.001,
+    )
+    print(f"  -> Successfully Booked Rooms ({len(inventory.booked_seekers)}): {', '.join(inventory.booked_seekers)}")
+    print(f"  -> Rejected Due to Zero Rooms ({len(inventory.rejected_seekers)}): {', '.join(inventory.rejected_seekers)}")
+    print(f"  -> Remaining Capacity: {inventory.available_rooms}")
+    assert len(inventory.booked_seekers) == room_capacity
+    assert inventory.available_rooms == 0
+    print("[PASS] Verified: threading.Lock guaranteed zero race conditions and zero overbooking.")
+
+    # --------------------------------------------------------------------------
+    # STEP 11: Subsystem Integration & Integrated Business Report
+    # --------------------------------------------------------------------------
+    print("\n" + "=" * 75)
+    print("STEP 11: SUBSYSTEM INTEGRATION & INTEGRATED BUSINESS REPORT")
+    print("=" * 75)
+
+    subsystem = LeaseInspectionSubsystem(repository=repo)
+    sync_observer = SubsystemSyncObserver(subsystem)
+
+    # Re-evaluate all seekers against owners to populate subsystem via Observer
+    integrated_service = FlatMatchService(
+        api_client=commute_client,
+        strategy=CommuteAndLifestyleStrategy(),
+        observers=[sync_observer],
+        geocoding_client=geocoder,
+    )
+
+    for seeker in seekers[:4]:
+        for owner in owners[:2]:
+            integrated_service.evaluate_candidate_match(seeker, owner)
+
+    business_report = generate_integrated_business_report(repo, subsystem)
+    print("Generated Integrated Business Report (Combining Repository & Lease Subsystem):")
+    for key, value in business_report.items():
+        print(f"  * {key}: {value}")
 
     # --------------------------------------------------------------------------
     # Final Success Banner
     # --------------------------------------------------------------------------
     print("\n" + "=" * 75)
-    print("  FLATMATCH STAGE 1 & SMART COMMUTE API DEMONSTRATION PASSED (100% SUCCESS)!")
+    print("  ALL 11 FLATMATCH DEMONSTRATION PHASES COMPLETED WITH 100% SUCCESS!")
     print("=" * 75)
 
 

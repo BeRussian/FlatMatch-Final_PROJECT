@@ -7,10 +7,10 @@ This package encapsulates:
 - Collection Processing, Queues & Sorting (processing.py)
 - Iterators, Generators & Lazy Pipeline (iterators.py)
 - Resource & Lifecycle Context Managers (context_managers.py)
-- Smart Location & Address Normalization (address_normalizer.py)
-- Geocoding Client (geocoding.py)
-- Commute Routing API Client with Retries & Fallback (api_client.py)
-- Async Rate-Limited Verification (async_processing.py)
+- Strategy, Factory, Observer Design Patterns & Services (strategies.py, factories.py, observers.py, services.py)
+- Smart Location, Address Normalizer & OSRM Routing Client (address_normalizer.py, geocoding.py, api_client.py)
+- Concurrency: Async Rate-Limited Ingestion & Thread-Safe Room Inventory (async_processing.py, threaded_processing.py)
+- Lease Inspection Subsystem & Integrated Reports (reports.py)
 """
 
 from .models import (
@@ -64,6 +64,25 @@ from .context_managers import (
     SearchSessionContext,
     ApartmentHoldContext,
 )
+from .factories import (
+    UserFactory,
+    VALID_USER_TYPES,
+)
+from .strategies import (
+    MatchingStrategy,
+    BudgetFocusedStrategy,
+    CommuteAndLifestyleStrategy,
+)
+from .observers import (
+    MatchEventListener,
+    MatchStatisticsObserver,
+    ApplicantNotificationObserver,
+)
+from .services import (
+    FlatMatchService,
+    MatchEvaluationResult,
+    calculate_commute_adjusted_budget,
+)
 from .address_normalizer import (
     AddressNormalizer,
     normalize_address,
@@ -83,6 +102,16 @@ from .async_processing import (
     fetch_apartment_verification_async,
     collect_verifications_sequential,
     collect_verifications_concurrent,
+)
+from .threaded_processing import (
+    SharedRoomInventory,
+    UnsafeSharedRoomInventory,
+    run_concurrent_room_bookings,
+)
+from .reports import (
+    LeaseInspectionSubsystem,
+    SubsystemSyncObserver,
+    generate_integrated_business_report,
 )
 
 __all__ = [
@@ -131,6 +160,18 @@ __all__ = [
     "build_lazy_seeker_pipeline",
     "SearchSessionContext",
     "ApartmentHoldContext",
+    # Stage 2 Design Patterns & Services
+    "UserFactory",
+    "VALID_USER_TYPES",
+    "MatchingStrategy",
+    "BudgetFocusedStrategy",
+    "CommuteAndLifestyleStrategy",
+    "MatchEventListener",
+    "MatchStatisticsObserver",
+    "ApplicantNotificationObserver",
+    "FlatMatchService",
+    "MatchEvaluationResult",
+    "calculate_commute_adjusted_budget",
     # Stage 2 Smart Location & External API Pipeline
     "AddressNormalizer",
     "normalize_address",
@@ -144,4 +185,12 @@ __all__ = [
     "fetch_apartment_verification_async",
     "collect_verifications_sequential",
     "collect_verifications_concurrent",
+    # Stage 2 Threaded Processing with Lock
+    "SharedRoomInventory",
+    "UnsafeSharedRoomInventory",
+    "run_concurrent_room_bookings",
+    # Stage 2 Subsystem Integration & Integrated Reports
+    "LeaseInspectionSubsystem",
+    "SubsystemSyncObserver",
+    "generate_integrated_business_report",
 ]

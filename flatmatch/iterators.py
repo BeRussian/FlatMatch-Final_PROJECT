@@ -114,7 +114,7 @@ def build_lazy_seeker_pipeline(source_iterable, target_city: str, min_cleanlines
     # Stage 1: City filter (generator expression)
     stage1_city_filter = (
         seeker for seeker in source_iterable
-        if any(c.strip().lower() == target_city.strip().lower() for c in seeker.preferred_cities)
+        if any(target_city.strip().lower() in c.strip().lower() or c.strip().lower() == target_city.strip().lower() for c in seeker.preferred_cities)
     )
 
     # Stage 2: Cleanliness score filter (generator expression)
